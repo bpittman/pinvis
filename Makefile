@@ -28,4 +28,4 @@ $(TOOLS): %$(PINTOOL_SUFFIX) : %.o
 
 ## cleaning
 clean:
-	-rm -rf $(OBJDIR) runpin *.out *.log *.tested *.failed
+	-rm -rf $(OBJDIR) runpin
