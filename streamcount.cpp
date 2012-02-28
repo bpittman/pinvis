@@ -98,31 +98,25 @@ VOID Fini(INT32 code, VOID *v)
 {
    //Write to a file since cout and cerr maybe closed by the application
    ofstream OutFile;
-   OutFile.open(KnobOutputFile.Value().c_str());
-   OutFile.setf(ios::showbase);
+   OutFile.open(KnobOutputFile.Value().c_str(),ofstream::binary);
 
    //write global stats
-   OutFile << "numStreamS: " << stream_table.size() << endl;
-   OutFile << "numStreamD: " << numStreamD << endl;
-   OutFile << "numMemRef: "  << numMemRef << endl;
-   OutFile << "numIrefs: " << numIrefs << endl;
-   OutFile << "maxStreamLen: " << maxStreamLen << endl;
-   OutFile << "avgStreamLen: " << (double)numIrefs/numStreamD << endl;
-
+   int table_size = stream_table.size();
+   OutFile.write(reinterpret_cast <const char*>(&(table_size)),sizeof(int));
    //write streams
    vector<stream_table_entry*>::iterator it;
    for(UINT32 i=0;i<stream_table.size();++i) {
        stream_table_entry* entry = stream_table[i];
-
-       OutFile << i << ": (0x" << hex << entry->sa << ", " << dec <<
-               entry->sl << ", " << entry->lscount << "), "
-               << "(" << entry->scount << "); " ;
-
-       OutFile << "{ ";
+       OutFile.write(reinterpret_cast <const char*>(&(entry->sa)),sizeof(ADDRINT));
+       OutFile.write(reinterpret_cast <const char*>(&(entry->sl)),sizeof(UINT32));
+       OutFile.write(reinterpret_cast <const char*>(&(entry->lscount)),sizeof(UINT32));
+       OutFile.write(reinterpret_cast <const char*>(&(entry->scount)),sizeof(UINT32));
+       int next_stream_size = entry->next_stream.size();
+       OutFile.write(reinterpret_cast <const char*>(&(next_stream_size)),sizeof(int));
        for(map<UINT32,UINT32>::iterator it=entry->next_stream.begin();it!=entry->next_stream.end();++it) {
-           OutFile << "(" << it->first << "," << it->second << ")";
+           OutFile.write(reinterpret_cast <const char*>(&(it->first)),sizeof(int));
+           OutFile.write(reinterpret_cast <const char*>(&(it->second)),sizeof(int));
        }
-       OutFile << " }" << endl;
    }
    OutFile.close();
 }
