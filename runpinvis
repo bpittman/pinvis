@@ -1,0 +1,2 @@
+export LD_LIBRARY_PATH="/usr/local/lib:/home/brian/code/OpenSceneGraph-3.0.1/lib/"
+./pinvis

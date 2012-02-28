@@ -1,2 +1,5 @@
 obj-ia32
 runpin
+runpinvis
+pinvis
+*.o
