@@ -11,16 +11,16 @@ int main()
 {
    osgViewer::Viewer viewer;
    osg::Group* root = new osg::Group();
-   osg::Geode* pyramidGeode = new osg::Geode();
-   osg::Geometry* pyramidGeometry = new osg::Geometry();
+   osg::Geode* cubeGeode = new osg::Geode();
+   osg::Geometry* cubeGeometry = new osg::Geometry();
    osg::Geode* crossGeode = new osg::Geode();
    osg::Geometry* crossGeometry = new osg::Geometry();
 
-   //Associate the pyramid geometry with the pyramid geode 
-   //   Add the pyramid geode to the root node of the scene graph.
+   //Associate the cube geometry with the cube geode 
+   //   Add the cube geode to the root node of the scene graph.
 
-   pyramidGeode->addDrawable(pyramidGeometry); 
-   root->addChild(pyramidGeode);
+   cubeGeode->addDrawable(cubeGeometry); 
+   root->addChild(cubeGeode);
    crossGeode->addDrawable(crossGeometry); 
    root->addChild(crossGeode);
 
@@ -33,14 +33,20 @@ int main()
    //zero, the second entries index is 1, etc.
    //Using a right-handed coordinate system with 'z' up, array 
    //elements zero..four below represent the 5 points required to create 
-   //a simple pyramid.
+   //a simple cube.
 
-   osg::Vec3Array* pyramidVertices = new osg::Vec3Array;
-   pyramidVertices->push_back( osg::Vec3( 0, 0, 0) ); // front left 
-   pyramidVertices->push_back( osg::Vec3(10, 0, 0) ); // front right 
-   pyramidVertices->push_back( osg::Vec3(10,10, 0) ); // back right 
-   pyramidVertices->push_back( osg::Vec3( 0,10, 0) ); // back left 
-   pyramidVertices->push_back( osg::Vec3( 5, 5,10) ); // peak
+   osg::Vec3Array* cubeVertices = new osg::Vec3Array;
+                                                   // bottom
+   cubeVertices->push_back( osg::Vec3(0, 0, 0)); // front left 
+   cubeVertices->push_back( osg::Vec3(1, 0, 0)); // front right 
+   cubeVertices->push_back( osg::Vec3(1, 1, 0)); // back right 
+   cubeVertices->push_back( osg::Vec3(0, 1, 0)); // back left 
+
+                                                   //top
+   cubeVertices->push_back( osg::Vec3(0, 0, 1) ); // front left 
+   cubeVertices->push_back( osg::Vec3(1, 0, 1) ); // front right 
+   cubeVertices->push_back( osg::Vec3(1, 1, 1) ); // back right 
+   cubeVertices->push_back( osg::Vec3(0, 1, 1) ); // back left
 
    float clen;
    clen = 12.0;
@@ -53,10 +59,10 @@ int main()
    //Associate this set of vertices with the geometry associated with the 
    //geode we added to the scene.
 
-   pyramidGeometry->setVertexArray( pyramidVertices );
+   cubeGeometry->setVertexArray( cubeVertices );
    crossGeometry->setVertexArray (crossVertices);
-   //Next, create a primitive set and add it to the pyramid geometry. 
-   //Use the first four points of the pyramid to define the base using an 
+   //Next, create a primitive set and add it to the cube geometry. 
+   //Use the first four points of the cube to define the base using an 
    //instance of the DrawElementsUint class. Again this class is derived 
    //from the STL vector, so the push_back method will add elements in 
    //sequential order. To ensure proper backface cullling, vertices 
@@ -65,13 +71,13 @@ int main()
    //(same as the OpenGL primitive enumerated types), and the index in 
    //the vertex array to start from.
 
-   osg::DrawElementsUInt* pyramidBase = 
+   osg::DrawElementsUInt* cubeBase = 
       new osg::DrawElementsUInt(osg::PrimitiveSet::QUADS, 0);
-   pyramidBase->push_back(3);
-   pyramidBase->push_back(2);
-   pyramidBase->push_back(1);
-   pyramidBase->push_back(0);
-   pyramidGeometry->addPrimitiveSet(pyramidBase);
+   cubeBase->push_back(3);
+   cubeBase->push_back(2);
+   cubeBase->push_back(1);
+   cubeBase->push_back(0);
+   cubeGeometry->addPrimitiveSet(cubeBase);
 
    osg::DrawElementsUInt* cross = 
       new osg::DrawElementsUInt(osg::PrimitiveSet::LINES, 0);
@@ -84,34 +90,45 @@ int main()
    //Repeat the same for each of the four sides. Again, vertices are 
    //specified in counter-clockwise order. 
 
-   osg::DrawElementsUInt* pyramidFaceOne = 
-      new osg::DrawElementsUInt(osg::PrimitiveSet::TRIANGLES, 0);
-   pyramidFaceOne->push_back(0);
-   pyramidFaceOne->push_back(1);
-   pyramidFaceOne->push_back(4);
-   pyramidGeometry->addPrimitiveSet(pyramidFaceOne);
+   osg::DrawElementsUInt* cubeFaceOne = 
+      new osg::DrawElementsUInt(osg::PrimitiveSet::QUADS, 0);
+   cubeFaceOne->push_back(0);
+   cubeFaceOne->push_back(1);
+   cubeFaceOne->push_back(5);
+   cubeFaceOne->push_back(4);
+   cubeGeometry->addPrimitiveSet(cubeFaceOne);
 
-   osg::DrawElementsUInt* pyramidFaceTwo = 
-      new osg::DrawElementsUInt(osg::PrimitiveSet::TRIANGLES, 0);
-   pyramidFaceTwo->push_back(1);
-   pyramidFaceTwo->push_back(2);
-   pyramidFaceTwo->push_back(4);
-   pyramidGeometry->addPrimitiveSet(pyramidFaceTwo);
+   osg::DrawElementsUInt* cubeFaceTwo = 
+      new osg::DrawElementsUInt(osg::PrimitiveSet::QUADS, 0);
+   cubeFaceTwo->push_back(1);
+   cubeFaceTwo->push_back(2);
+   cubeFaceTwo->push_back(6);
+   cubeFaceTwo->push_back(5);
+   cubeGeometry->addPrimitiveSet(cubeFaceTwo);
 
-   osg::DrawElementsUInt* pyramidFaceThree = 
-      new osg::DrawElementsUInt(osg::PrimitiveSet::TRIANGLES, 0);
-   pyramidFaceThree->push_back(2);
-   pyramidFaceThree->push_back(3);
-   pyramidFaceThree->push_back(4);
-   pyramidGeometry->addPrimitiveSet(pyramidFaceThree);
+   osg::DrawElementsUInt* cubeFaceThree = 
+      new osg::DrawElementsUInt(osg::PrimitiveSet::QUADS, 0);
+   cubeFaceThree->push_back(2);
+   cubeFaceThree->push_back(3);
+   cubeFaceThree->push_back(7);
+   cubeFaceThree->push_back(6);
+   cubeGeometry->addPrimitiveSet(cubeFaceThree);
 
-   osg::DrawElementsUInt* pyramidFaceFour = 
-      new osg::DrawElementsUInt(osg::PrimitiveSet::TRIANGLES, 0);
-   pyramidFaceFour->push_back(3);
-   pyramidFaceFour->push_back(0);
-   pyramidFaceFour->push_back(4);
-   pyramidGeometry->addPrimitiveSet(pyramidFaceFour);
+   osg::DrawElementsUInt* cubeFaceFour = 
+      new osg::DrawElementsUInt(osg::PrimitiveSet::QUADS, 0);
+   cubeFaceFour->push_back(0);
+   cubeFaceFour->push_back(3);
+   cubeFaceFour->push_back(7);
+   cubeFaceFour->push_back(4);
+   cubeGeometry->addPrimitiveSet(cubeFaceFour);
 
+   osg::DrawElementsUInt* cubeFaceFive =
+      new osg::DrawElementsUInt(osg::PrimitiveSet::QUADS, 0);
+   cubeFaceFive->push_back(4);
+   cubeFaceFive->push_back(5);
+   cubeFaceFive->push_back(6);
+   cubeFaceFive->push_back(7);
+   cubeGeometry->addPrimitiveSet(cubeFaceFive);
    //Declare and load an array of Vec4 elements to store colors. 
 
    osg::Vec4Array* colors = new osg::Vec4Array;
@@ -141,39 +158,42 @@ int main()
    colorIndexArray->push_back(2); // vertex 2 assigned color array element 2
    colorIndexArray->push_back(3); // vertex 3 assigned color array element 3
    colorIndexArray->push_back(0); // vertex 4 assigned color array element 0
+   colorIndexArray->push_back(1); // vertex 4 assigned color array element 1
+   colorIndexArray->push_back(2); // vertex 4 assigned color array element 2
+   colorIndexArray->push_back(3); // vertex 4 assigned color array element 3
 
    //The next step is to associate the array of colors with the geometry, 
    //assign the color indices created above to the geometry and set the 
    //binding mode to _PER_VERTEX.
 
-   pyramidGeometry->setColorArray(colors);
-   pyramidGeometry->setColorIndices(colorIndexArray);
-   pyramidGeometry->setColorBinding(osg::Geometry::BIND_PER_VERTEX);
+   cubeGeometry->setColorArray(colors);
+   cubeGeometry->setColorIndices(colorIndexArray);
+   cubeGeometry->setColorBinding(osg::Geometry::BIND_PER_VERTEX);
    crossGeometry->setColorArray(colors);
    crossGeometry->setColorIndices(colorIndexArray);
    crossGeometry->setColorBinding(osg::Geometry::BIND_PER_VERTEX);
 
    //Now that we have created a geometry node and added it to the scene 
    //we can reuse this geometry. For example, if we wanted to put a 
-   //second pyramid 15 units to the right of the first one, we could add 
+   //second cube 15 units to the right of the first one, we could add 
    //this geode as the child of a transform node in our scene graph. 
 
    // Declare and initialize a transform node.
-   osg::PositionAttitudeTransform* pyramidTwoXForm =
+   osg::PositionAttitudeTransform* cubeTwoXForm =
       new osg::PositionAttitudeTransform();
 
    // Use the 'addChild' method of the osg::Group class to
    // add the transform as a child of the root node and the
-   // pyramid node as a child of the transform.
+   // cube node as a child of the transform.
 
-   root->addChild(pyramidTwoXForm);
-   pyramidTwoXForm->addChild(pyramidGeode);
+   root->addChild(cubeTwoXForm);
+   cubeTwoXForm->addChild(cubeGeode);
 
    // Declare and initialize a Vec3 instance to change the
    // position of the model in the scene
 
-   osg::Vec3 pyramidTwoPosition(15,0,0);
-   pyramidTwoXForm->setPosition( pyramidTwoPosition ); 
+   osg::Vec3 cubeTwoPosition(15,0,0);
+   cubeTwoXForm->setPosition( cubeTwoPosition ); 
 
    //The final step is to set up and enter a simulation loop.
 
