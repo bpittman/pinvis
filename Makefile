@@ -10,8 +10,11 @@ TOOL_ROOTS = streamcount
 
 TOOLS = $(TOOL_ROOTS:%=$(OBJDIR)%$(PINTOOL_SUFFIX))
 
-all: tools
+all: tools runpin
 tools: $(OBJDIR) $(TOOLS)
+runpin:
+	echo "$(PIN_HOME)/pin -injection child -t $(OBJDIR)/streamcount.so -- /bin/ls" >> runpin
+	chmod u+x runpin
 
 $(OBJDIR):
 	mkdir -p $(OBJDIR)
@@ -25,4 +28,4 @@ $(TOOLS): %$(PINTOOL_SUFFIX) : %.o
 
 ## cleaning
 clean:
-	-rm -rf $(OBJDIR) *.out *.log *.tested *.failed
+	-rm -rf $(OBJDIR) runpin *.out *.log *.tested *.failed
