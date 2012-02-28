@@ -1,0 +1,4 @@
+Build steps:
+> vi Makefile.pin.gnu.config #set PIN_HOME to the rootdir of pintool
+> make
+> ./runpin
