@@ -3,3 +3,4 @@ runpin
 runpinvis
 pinvis
 *.o
+*.bin

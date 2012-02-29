@@ -91,7 +91,7 @@ VOID Trace(TRACE trace, VOID *v)
 }
 
 KNOB<string> KnobOutputFile(KNOB_MODE_WRITEONCE, "pintool",
-   "o", "streamcount.out", "specify output file name");
+   "o", "streamcount.bin", "specify output file name");
 
 //This function is called when the application exits
 VOID Fini(INT32 code, VOID *v)
