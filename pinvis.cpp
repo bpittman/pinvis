@@ -25,6 +25,8 @@ typedef struct {
    UINT32 scount; //stream count -- how many times it has been executed
    UINT32 lscount; //number of memory-referencing instructions
    UINT32 nstream; //number of unique next streams
+   char* img_name;
+   char* rtn_name;
    map<UINT32,UINT32> next_stream; //<stream index,times executed> count how many times the next stream is encountered
 } stream_table_entry;
 
@@ -217,6 +219,7 @@ int main(int argc, char** argv)
    UINT32 total_streams, dim;
    int row=0;
    int col=0;
+   int img_size=0,rtn_size=0;
    inFile.read((char*)&total_streams,sizeof(UINT32));
    dim = ceil(sqrt(total_streams));
 
@@ -226,6 +229,12 @@ int main(int argc, char** argv)
       inFile.read((char*)(&(e->sl)),sizeof(UINT32));
       inFile.read((char*)(&(e->lscount)),sizeof(UINT32));
       inFile.read((char*)(&(e->scount)),sizeof(UINT32));
+      inFile.read((char*)(&(img_size)),sizeof(UINT32));
+      e->img_name = new char[img_size];
+      inFile.read(e->img_name,img_size);
+      inFile.read((char*)(&(rtn_size)),sizeof(UINT32));
+      e->rtn_name = new char[rtn_size];
+      inFile.read(e->rtn_name,rtn_size);
       int next_stream_count;
       inFile.read((char*)&next_stream_count,sizeof(int));
       for(int j=0;j<next_stream_count;++j) {
