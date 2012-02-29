@@ -2,6 +2,7 @@
 #include <osg/Group>
 #include <osg/Geode>
 #include <osg/Geometry>
+#include <osg/Material>
 #include <osg/Texture2D>
 #include <osgDB/ReadFile> 
 #include <osgViewer/Viewer>
@@ -105,7 +106,12 @@ void PickHandler::pick(osgViewer::View* view, const osgGA::GUIEventAdapter& ea)
         {
             std::ostringstream os;
             if(hitr->nodePath.size() >= 2) {
-                os << "Function \"" << hitr->nodePath[hitr->nodePath.size()-2]->getName()<<"\""<<endl;
+                osg::Node *node = hitr->nodePath[hitr->nodePath.size()-2];
+                osg::StateSet *ss = node->getOrCreateStateSet();
+                osg::Material *nm = new osg::Material;
+                nm->setDiffuse(osg::Material::FRONT,osg::Vec4(0.9f,.2f,.2f,1.0f));
+                ss->setAttribute(nm);
+                os << "Function \"" << node->getName()<<"\""<<endl;
             }
             else if (!hitr->nodePath.empty() && !(hitr->nodePath.back()->getName().empty()))
             {
