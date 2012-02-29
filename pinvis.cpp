@@ -166,7 +166,7 @@ osg::Node* createHUD(osgText::Text* updateText)
 
     // turn lighting off for the text and disable depth test to ensure its always ontop.
     osg::Vec3 position(150.0f,800.0f,0.0f);
-    osg::Vec3 delta(0.0f,-60.0f,0.0f);
+    osg::Vec3 delta(-60.0f,-60.0f,0.0f);
 
     {
         osg::Geode* geode = new osg::Geode();
