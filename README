@@ -2,3 +2,17 @@ Build steps:
 > vi Makefile.pin.gnu.config #set PIN_HOME to the rootdir of pintool
 > make
 > ./runpin
+> ./runpinvis
+
+TODO:
+instruction-level visualization
+memory visualization
+return visualization
+syscall visualization??
+translation interp
+ *osgParticle::Particle?
+ *osgAnimation/easemotion?
+ *http://webcache.googleusercontent.com/search?q=cache:YAJ-HET3pMgJ:www.cuboslocos.com/tutorials/OSG-BasicAnimation&hl=en&gl=us&strip=1 ?
+button overlay
+QT-ify
+testing
