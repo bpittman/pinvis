@@ -12,6 +12,7 @@
 #include <fstream>
 #include <map>
 #include <vector>
+#include <math.h>
 
 using namespace std;
 
@@ -53,7 +54,6 @@ int main(int argc, char** argv)
    //   Add the cube geode to the root node of the scene graph.
 
    cubeGeode->addDrawable(cubeGeometry); 
-   root->addChild(cubeGeode);
    crossGeode->addDrawable(crossGeometry); 
    root->addChild(crossGeode);
 
@@ -214,8 +214,11 @@ int main(int argc, char** argv)
    ifstream inFile;
    inFile.open(filename,ofstream::binary);
 
-   UINT32 total_streams;
+   UINT32 total_streams, dim;
+   int row=0;
+   int col=0;
    inFile.read((char*)&total_streams,sizeof(UINT32));
+   dim = ceil(sqrt(total_streams));
 
    for(int i=0;i<total_streams;++i) {
       stream_table_entry* e = new stream_table_entry;
@@ -231,25 +234,28 @@ int main(int argc, char** argv)
          inFile.read((char*)&times_executed,sizeof(UINT32));
          e->next_stream.insert(pair<UINT32,UINT32>(stream_index,times_executed));
       }
+      // Declare and initialize a transform node.
+      osg::PositionAttitudeTransform* cubeXForm =
+	 new osg::PositionAttitudeTransform();
+
+      // Use the 'addChild' method of the osg::Group class to
+      // add the transform as a child of the root node and the
+      // cube node as a child of the transform.
+
+      root->addChild(cubeXForm);
+      cubeXForm->addChild(cubeGeode);
+
+      // Declare and initialize a Vec3 instance to change the
+      // position of the model in the scene
+      osg::Vec3 cubePosition(row,col,0);
+      osg::Vec3 cubeScale(1,1,e->sl);
+      cubeXForm->setPosition(cubePosition);
+      cubeXForm->setScale(cubeScale);
+      if(++row>=dim) {
+         row=0;
+         col++;
+      }
    }
-   // Declare and initialize a transform node.
-   osg::PositionAttitudeTransform* cubeTwoXForm =
-      new osg::PositionAttitudeTransform();
-
-   // Use the 'addChild' method of the osg::Group class to
-   // add the transform as a child of the root node and the
-   // cube node as a child of the transform.
-
-   root->addChild(cubeTwoXForm);
-   cubeTwoXForm->addChild(cubeGeode);
-
-   // Declare and initialize a Vec3 instance to change the
-   // position of the model in the scene
-
-   osg::Vec3 cubeTwoPosition(15,0,0);
-   osg::Vec3 cubeTwoScale(1,1,10);
-   cubeTwoXForm->setPosition( cubeTwoPosition ); 
-   cubeTwoXForm->setScale(cubeTwoScale);
 
    //The final step is to set up and enter a simulation loop.
 
