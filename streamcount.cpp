@@ -154,9 +154,9 @@ VOID Fini(INT32 code, VOID *v)
        OutFile.write(reinterpret_cast <const char*>(&(entry->lscount)),sizeof(UINT32));
        OutFile.write(reinterpret_cast <const char*>(&(entry->scount)),sizeof(UINT32));
        const char* img_name = img_name_list[entry->img].c_str();
-       UINT32 img_name_size = img_name_list[entry->img].size();
+       UINT32 img_name_size = img_name_list[entry->img].size()+1;
        const char* rtn_name = rtn_name_list[entry->rtn].c_str();
-       UINT32 rtn_name_size = rtn_name_list[entry->rtn].size();
+       UINT32 rtn_name_size = rtn_name_list[entry->rtn].size()+1;
        OutFile.write(reinterpret_cast <const char*>(&(img_name_size)),sizeof(UINT32));
        OutFile.write(img_name,img_name_size);
        OutFile.write(reinterpret_cast <const char*>(&(rtn_name_size)),sizeof(UINT32));
