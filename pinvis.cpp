@@ -31,6 +31,7 @@ typedef struct {
    char* img_name;
    char* rtn_name;
    map<UINT32,UINT32> next_stream; //<stream index,times executed> count how many times the next stream is encountered
+   osg::PositionAttitudeTransform* transform;
 } stream_table_entry;
 
 typedef pair<ADDRINT,UINT32> key; //<address of block,length of block>
@@ -324,25 +325,24 @@ int main(int argc, char** argv)
          e->next_stream.insert(pair<UINT32,UINT32>(stream_index,times_executed));
       }
       // Declare and initialize a transform node.
-      osg::PositionAttitudeTransform* cubeXForm =
-	 new osg::PositionAttitudeTransform();
+      e->transform = new osg::PositionAttitudeTransform();
 
       // Use the 'addChild' method of the osg::Group class to
       // add the transform as a child of the root node and the
       // cube node as a child of the transform.
 
-      root->addChild(cubeXForm);
-      cubeXForm->addChild(cubeGeode);
+      root->addChild(e->transform);
+      e->transform->addChild(cubeGeode);
       ostringstream name;
       name << e->img_name << ":" << e->rtn_name << " " << e->sl;
-      cubeXForm->setName(name.str());
+      e->transform->setName(name.str());
 
       // Declare and initialize a Vec3 instance to change the
       // position of the model in the scene
       osg::Vec3 cubePosition(row,col,0);
       osg::Vec3 cubeScale(1,1,e->sl);
-      cubeXForm->setPosition(cubePosition);
-      cubeXForm->setScale(cubeScale);
+      e->transform->setPosition(cubePosition);
+      e->transform->setScale(cubeScale);
       if(++row>=dim) {
          row=0;
          col++;
