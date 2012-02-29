@@ -193,102 +193,11 @@ int main(int argc, char** argv)
    osgViewer::Viewer viewer;
    osg::Group* root = new osg::Group();
    osg::Geode* cubeGeode = new osg::Geode();
-   osg::Geode* crossGeode = new osg::Geode();
-   osg::Geometry* crossGeometry = new osg::Geometry();
 
    //Associate the cube geometry with the cube geode 
    //   Add the cube geode to the root node of the scene graph.
 
    cubeGeode->addDrawable(new osg::ShapeDrawable(new osg::Box(osg::Vec3(0.5,0.5,0.5),1.0,1.0,1.0))); 
-   crossGeode->addDrawable(crossGeometry); 
-   root->addChild(crossGeode);
-
-   //Declare an array of vertices. Each vertex will be represented by 
-   //a triple -- an instances of the vec3 class. An instance of 
-   //osg::Vec3Array can be used to store these triples. Since 
-   //osg::Vec3Array is derived from the STL vector class, we can use the
-   //push_back method to add array elements. Push back adds elements to 
-   //the end of the vector, thus the index of first element entered is 
-   //zero, the second entries index is 1, etc.
-   //Using a right-handed coordinate system with 'z' up, array 
-   //elements zero..four below represent the 5 points required to create 
-   //a simple cube.
-
-   float clen;
-   clen = 12.0;
-   osg::Vec3Array* crossVertices = new osg::Vec3Array;
-   crossVertices->push_back (osg::Vec3(-clen, 0.0, 0.0));
-   crossVertices->push_back (osg::Vec3( clen, 0.0, 0.0));
-   crossVertices->push_back (osg::Vec3(  0.0, 0.0, -clen));
-   crossVertices->push_back (osg::Vec3(  0.0, 0.0,  clen));  
-
-   //Associate this set of vertices with the geometry associated with the 
-   //geode we added to the scene.
-
-   crossGeometry->setVertexArray (crossVertices);
-   //Next, create a primitive set and add it to the cube geometry. 
-   //Use the first four points of the cube to define the base using an 
-   //instance of the DrawElementsUint class. Again this class is derived 
-   //from the STL vector, so the push_back method will add elements in 
-   //sequential order. To ensure proper backface cullling, vertices 
-   //should be specified in counterclockwise order. The arguments for the 
-   //constructor are the enumerated type for the primitive 
-   //(same as the OpenGL primitive enumerated types), and the index in 
-   //the vertex array to start from.
-
-   osg::DrawElementsUInt* cross = 
-      new osg::DrawElementsUInt(osg::PrimitiveSet::LINES, 0);
-   cross->push_back(3);
-   cross->push_back(2);
-   cross->push_back(1);
-   cross->push_back(0);
-   crossGeometry->addPrimitiveSet(cross);
-
-   //Declare and load an array of Vec4 elements to store colors. 
-
-   osg::Vec4Array* colors = new osg::Vec4Array;
-   colors->push_back(osg::Vec4(1.0f, 0.0f, 0.0f, 1.0f) ); //index 0 red
-   colors->push_back(osg::Vec4(0.0f, 1.0f, 0.0f, 1.0f) ); //index 1 green
-   colors->push_back(osg::Vec4(0.0f, 0.0f, 1.0f, 1.0f) ); //index 2 blue
-   colors->push_back(osg::Vec4(1.0f, 1.0f, 1.0f, 1.0f) ); //index 3 white
-
-   //Declare the variable that will match vertex array elements to color 
-   //array elements. This vector should have the same number of elements 
-   //as the number of vertices. This vector serves as a link between 
-   //vertex arrays and color arrays. Entries in this index array 
-   //coorespond to elements in the vertex array. Their values coorespond 
-   //to the index in he color array. This same scheme would be followed 
-   //if vertex array elements were matched with normal or texture 
-   //coordinate arrays.
-   //   Note that in this case, we are assigning 5 vertices to four 
-   //   colors. Vertex array element zero (bottom left) and four (peak) 
-   //   are both assigned to color array element zero (red).
-
-   osg::TemplateIndexArray
-      <unsigned int, osg::Array::UIntArrayType,4,4> *colorIndexArray;
-   colorIndexArray = 
-      new osg::TemplateIndexArray<unsigned int, osg::Array::UIntArrayType,4,4>;
-   colorIndexArray->push_back(0); // vertex 0 assigned color array element 0
-   colorIndexArray->push_back(1); // vertex 1 assigned color array element 1
-   colorIndexArray->push_back(2); // vertex 2 assigned color array element 2
-   colorIndexArray->push_back(3); // vertex 3 assigned color array element 3
-   colorIndexArray->push_back(0); // vertex 4 assigned color array element 0
-   colorIndexArray->push_back(1); // vertex 4 assigned color array element 1
-   colorIndexArray->push_back(2); // vertex 4 assigned color array element 2
-   colorIndexArray->push_back(3); // vertex 4 assigned color array element 3
-
-   //The next step is to associate the array of colors with the geometry, 
-   //assign the color indices created above to the geometry and set the 
-   //binding mode to _PER_VERTEX.
-
-   crossGeometry->setColorArray(colors);
-   crossGeometry->setColorIndices(colorIndexArray);
-   crossGeometry->setColorBinding(osg::Geometry::BIND_PER_VERTEX);
-
-   //Now that we have created a geometry node and added it to the scene 
-   //we can reuse this geometry. For example, if we wanted to put a 
-   //second cube 15 units to the right of the first one, we could add 
-   //this geode as the child of a transform node in our scene graph. 
 
    osg::ref_ptr<osgText::Text> updateText = new osgText::Text;
    root->addChild(createHUD(updateText.get()));
