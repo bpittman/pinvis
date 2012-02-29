@@ -40,6 +40,10 @@ typedef map<key,UINT32> stream_map; //<block key,index in stream_table>
 
 static stream_map stream_ids; //maps block keys to their index in the stream_table
 static vector<stream_table_entry*> stream_table; //one entry for each unique (by address & length) block
+static vector<osg::Node*> highlighted; //nodes that are currently highlighted by the picking code
+
+void clearHighlighted(void);
+void setColor(osg::Node*,float r, float g, float b);
 
 // class to handle events with a pick
 class PickHandler : public osgGA::GUIEventHandler {
@@ -112,6 +116,8 @@ void PickHandler::pick(osgViewer::View* view, const osgGA::GUIEventAdapter& ea)
                 nm->setDiffuse(osg::Material::FRONT,osg::Vec4(0.9f,.2f,.2f,1.0f));
                 ss->setAttribute(nm);
                 os << "Function \"" << node->getName()<<"\""<<endl;
+                clearHighlighted();
+                highlighted.push_back(node);
             }
             else if (!hitr->nodePath.empty() && !(hitr->nodePath.back()->getName().empty()))
             {
@@ -128,6 +134,19 @@ void PickHandler::pick(osgViewer::View* view, const osgGA::GUIEventAdapter& ea)
         }
     }
     setLabel(gdlist);
+}
+
+void clearHighlighted(void) {
+   for(int i=0;i<highlighted.size();++i) {
+      setColor(highlighted[i],1.0,1.0,1.0);
+   }
+}
+
+void setColor(osg::Node* node,float r, float g, float b) {
+   osg::StateSet *ss = node->getOrCreateStateSet();
+   osg::Material *nm = new osg::Material;
+   nm->setDiffuse(osg::Material::FRONT,osg::Vec4(r,g,b,1.0f));
+   ss->setAttribute(nm);
 }
 
 osg::Node* createHUD(osgText::Text* updateText)
@@ -241,6 +260,7 @@ int main(int argc, char** argv)
       }
       // Declare and initialize a transform node.
       e->transform = new osg::PositionAttitudeTransform();
+      setColor(e->transform,1.0,1.0,1.0);
 
       // Use the 'addChild' method of the osg::Group class to
       // add the transform as a child of the root node and the
