@@ -96,23 +96,17 @@ void PickHandler::pick(osgViewer::View* view, const osgGA::GUIEventAdapter& ea)
     std::string gdlist="";
     float x = ea.getX();
     float y = ea.getY();
-#if 0
-    osg::ref_ptr< osgUtil::LineSegmentIntersector > picker = new osgUtil::LineSegmentIntersector(osgUtil::Intersector::WINDOW, x, y);
-    osgUtil::IntersectionVisitor iv(picker.get());
-    view->getCamera()->accept(iv);
-    if (picker->containsIntersections())
-    {
-        intersections = picker->getIntersections();
-#else
     if (view->computeIntersections(x,y,intersections))
     {
-#endif
         for(osgUtil::LineSegmentIntersector::Intersections::iterator hitr = intersections.begin();
             hitr != intersections.end();
             ++hitr)
         {
             std::ostringstream os;
-            if (!hitr->nodePath.empty() && !(hitr->nodePath.back()->getName().empty()))
+            if(hitr->nodePath.size() >= 2) {
+                os << "Function \"" << hitr->nodePath[hitr->nodePath.size()-2]->getName()<<"\""<<endl;
+            }
+            else if (!hitr->nodePath.empty() && !(hitr->nodePath.back()->getName().empty()))
             {
                 // the geodes are identified by name.
                 os<<"Object \""<<hitr->nodePath.back()->getName()<<"\""<<std::endl;
@@ -122,15 +116,8 @@ void PickHandler::pick(osgViewer::View* view, const osgGA::GUIEventAdapter& ea)
                 os<<"Object \""<<hitr->drawable->className()<<"\""<<std::endl;
             }
 
-            os<<"        local coords vertex("<< hitr->getLocalIntersectPoint()<<")"<<"  normal("<<hitr->getLocalIntersectNormal()<<")"<<std::endl;
-            os<<"        world coords vertex("<< hitr->getWorldIntersectPoint()<<")"<<"  normal("<<hitr->getWorldIntersectNormal()<<")"<<std::endl;
-            const osgUtil::LineSegmentIntersector::Intersection::IndexList& vil = hitr->indexList;
-            for(unsigned int i=0;i<vil.size();++i)
-            {
-                os<<"        vertex indices ["<<i<<"] = "<<vil[i]<<std::endl;
-            }
-
             gdlist += os.str();
+            break; //for now just grab the first intersection; seems to be the closest to camera anyway
         }
     }
     setLabel(gdlist);
@@ -166,8 +153,7 @@ osg::Node* createHUD(osgText::Text* updateText)
         osgText::Text* text = new  osgText::Text;
         geode->addDrawable( text );
 
-        text->setFont(timesFont);
-        text->setText("Picking in Head Up Displays is simple!");
+        text->setText("PINVIS");
         text->setPosition(position);
 
         position += delta;
@@ -183,7 +169,6 @@ osg::Node* createHUD(osgText::Text* updateText)
         hudCamera->addChild(geode);
 
         updateText->setCharacterSize(20.0f);
-        updateText->setFont(timesFont);
         updateText->setColor(osg::Vec4(1.0f,1.0f,0.0f,1.0f));
         updateText->setText("");
         updateText->setPosition(position);
@@ -348,6 +333,9 @@ int main(int argc, char** argv)
 
       root->addChild(cubeXForm);
       cubeXForm->addChild(cubeGeode);
+      ostringstream name;
+      name << e->img_name << ":" << e->rtn_name << " " << e->sl;
+      cubeXForm->setName(name.str());
 
       // Declare and initialize a Vec3 instance to change the
       // position of the model in the scene
