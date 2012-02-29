@@ -136,6 +136,65 @@ void PickHandler::pick(osgViewer::View* view, const osgGA::GUIEventAdapter& ea)
     setLabel(gdlist);
 }
 
+osg::Node* createHUD(osgText::Text* updateText)
+{
+
+    // create the hud. derived from osgHud.cpp
+    // adds a set of quads, each in a separate Geode - which can be picked individually
+    // eg to be used as a menuing/help system!
+    // Can pick texts too!
+
+    osg::Camera* hudCamera = new osg::Camera;
+    hudCamera->setReferenceFrame(osg::Transform::ABSOLUTE_RF);
+    hudCamera->setProjectionMatrixAsOrtho2D(0,1600,0,900);
+    hudCamera->setViewMatrix(osg::Matrix::identity());
+    hudCamera->setRenderOrder(osg::Camera::POST_RENDER);
+    hudCamera->setClearMask(GL_DEPTH_BUFFER_BIT);
+
+    // turn lighting off for the text and disable depth test to ensure its always ontop.
+    osg::Vec3 position(150.0f,800.0f,0.0f);
+    osg::Vec3 delta(0.0f,-60.0f,0.0f);
+
+    {
+        osg::Geode* geode = new osg::Geode();
+        osg::StateSet* stateset = geode->getOrCreateStateSet();
+        stateset->setMode(GL_LIGHTING,osg::StateAttribute::OFF);
+        stateset->setMode(GL_DEPTH_TEST,osg::StateAttribute::OFF);
+        geode->setName("simple");
+        hudCamera->addChild(geode);
+
+        osgText::Text* text = new  osgText::Text;
+        geode->addDrawable( text );
+
+        text->setFont(timesFont);
+        text->setText("Picking in Head Up Displays is simple!");
+        text->setPosition(position);
+
+        position += delta;
+    }
+
+    { // this displays what has been selected
+        osg::Geode* geode = new osg::Geode();
+        osg::StateSet* stateset = geode->getOrCreateStateSet();
+        stateset->setMode(GL_LIGHTING,osg::StateAttribute::OFF);
+        stateset->setMode(GL_DEPTH_TEST,osg::StateAttribute::OFF);
+        geode->setName("The text label");
+        geode->addDrawable( updateText );
+        hudCamera->addChild(geode);
+
+        updateText->setCharacterSize(20.0f);
+        updateText->setFont(timesFont);
+        updateText->setColor(osg::Vec4(1.0f,1.0f,0.0f,1.0f));
+        updateText->setText("");
+        updateText->setPosition(position);
+        updateText->setDataVariance(osg::Object::DYNAMIC);
+
+        position += delta;
+    }
+
+    return hudCamera;
+}
+
 int main(int argc, char** argv)
 {
    if(argc<2) {
@@ -244,6 +303,10 @@ int main(int argc, char** argv)
    //we can reuse this geometry. For example, if we wanted to put a 
    //second cube 15 units to the right of the first one, we could add 
    //this geode as the child of a transform node in our scene graph. 
+
+   osg::ref_ptr<osgText::Text> updateText = new osgText::Text;
+   root->addChild(createHUD(updateText.get()));
+   viewer.addEventHandler(new PickHandler(updateText.get()));
 
    ifstream inFile;
    inFile.open(filename,ofstream::binary);
