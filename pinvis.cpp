@@ -7,6 +7,7 @@
 #include <osgViewer/Viewer>
 #include <osg/PositionAttitudeTransform>
 #include <osgGA/TrackballManipulator>
+#include <osg/ShapeDrawable>
 
 #include <iostream>
 #include <fstream>
@@ -48,14 +49,13 @@ int main(int argc, char** argv)
    osgViewer::Viewer viewer;
    osg::Group* root = new osg::Group();
    osg::Geode* cubeGeode = new osg::Geode();
-   osg::Geometry* cubeGeometry = new osg::Geometry();
    osg::Geode* crossGeode = new osg::Geode();
    osg::Geometry* crossGeometry = new osg::Geometry();
 
    //Associate the cube geometry with the cube geode 
    //   Add the cube geode to the root node of the scene graph.
 
-   cubeGeode->addDrawable(cubeGeometry); 
+   cubeGeode->addDrawable(new osg::ShapeDrawable(new osg::Box(osg::Vec3(0.5,0.5,0.5),1.0,1.0,1.0))); 
    crossGeode->addDrawable(crossGeometry); 
    root->addChild(crossGeode);
 
@@ -70,19 +70,6 @@ int main(int argc, char** argv)
    //elements zero..four below represent the 5 points required to create 
    //a simple cube.
 
-   osg::Vec3Array* cubeVertices = new osg::Vec3Array;
-                                                   // bottom
-   cubeVertices->push_back( osg::Vec3(0, 0, 0)); // front left 
-   cubeVertices->push_back( osg::Vec3(1, 0, 0)); // front right 
-   cubeVertices->push_back( osg::Vec3(1, 1, 0)); // back right 
-   cubeVertices->push_back( osg::Vec3(0, 1, 0)); // back left 
-
-                                                   //top
-   cubeVertices->push_back( osg::Vec3(0, 0, 1) ); // front left 
-   cubeVertices->push_back( osg::Vec3(1, 0, 1) ); // front right 
-   cubeVertices->push_back( osg::Vec3(1, 1, 1) ); // back right 
-   cubeVertices->push_back( osg::Vec3(0, 1, 1) ); // back left
-
    float clen;
    clen = 12.0;
    osg::Vec3Array* crossVertices = new osg::Vec3Array;
@@ -94,7 +81,6 @@ int main(int argc, char** argv)
    //Associate this set of vertices with the geometry associated with the 
    //geode we added to the scene.
 
-   cubeGeometry->setVertexArray( cubeVertices );
    crossGeometry->setVertexArray (crossVertices);
    //Next, create a primitive set and add it to the cube geometry. 
    //Use the first four points of the cube to define the base using an 
@@ -106,14 +92,6 @@ int main(int argc, char** argv)
    //(same as the OpenGL primitive enumerated types), and the index in 
    //the vertex array to start from.
 
-   osg::DrawElementsUInt* cubeBase = 
-      new osg::DrawElementsUInt(osg::PrimitiveSet::QUADS, 0);
-   cubeBase->push_back(3);
-   cubeBase->push_back(2);
-   cubeBase->push_back(1);
-   cubeBase->push_back(0);
-   cubeGeometry->addPrimitiveSet(cubeBase);
-
    osg::DrawElementsUInt* cross = 
       new osg::DrawElementsUInt(osg::PrimitiveSet::LINES, 0);
    cross->push_back(3);
@@ -122,48 +100,6 @@ int main(int argc, char** argv)
    cross->push_back(0);
    crossGeometry->addPrimitiveSet(cross);
 
-   //Repeat the same for each of the four sides. Again, vertices are 
-   //specified in counter-clockwise order. 
-
-   osg::DrawElementsUInt* cubeFaceOne = 
-      new osg::DrawElementsUInt(osg::PrimitiveSet::QUADS, 0);
-   cubeFaceOne->push_back(0);
-   cubeFaceOne->push_back(1);
-   cubeFaceOne->push_back(5);
-   cubeFaceOne->push_back(4);
-   cubeGeometry->addPrimitiveSet(cubeFaceOne);
-
-   osg::DrawElementsUInt* cubeFaceTwo = 
-      new osg::DrawElementsUInt(osg::PrimitiveSet::QUADS, 0);
-   cubeFaceTwo->push_back(1);
-   cubeFaceTwo->push_back(2);
-   cubeFaceTwo->push_back(6);
-   cubeFaceTwo->push_back(5);
-   cubeGeometry->addPrimitiveSet(cubeFaceTwo);
-
-   osg::DrawElementsUInt* cubeFaceThree = 
-      new osg::DrawElementsUInt(osg::PrimitiveSet::QUADS, 0);
-   cubeFaceThree->push_back(2);
-   cubeFaceThree->push_back(3);
-   cubeFaceThree->push_back(7);
-   cubeFaceThree->push_back(6);
-   cubeGeometry->addPrimitiveSet(cubeFaceThree);
-
-   osg::DrawElementsUInt* cubeFaceFour = 
-      new osg::DrawElementsUInt(osg::PrimitiveSet::QUADS, 0);
-   cubeFaceFour->push_back(0);
-   cubeFaceFour->push_back(3);
-   cubeFaceFour->push_back(7);
-   cubeFaceFour->push_back(4);
-   cubeGeometry->addPrimitiveSet(cubeFaceFour);
-
-   osg::DrawElementsUInt* cubeFaceFive =
-      new osg::DrawElementsUInt(osg::PrimitiveSet::QUADS, 0);
-   cubeFaceFive->push_back(4);
-   cubeFaceFive->push_back(5);
-   cubeFaceFive->push_back(6);
-   cubeFaceFive->push_back(7);
-   cubeGeometry->addPrimitiveSet(cubeFaceFive);
    //Declare and load an array of Vec4 elements to store colors. 
 
    osg::Vec4Array* colors = new osg::Vec4Array;
@@ -201,9 +137,6 @@ int main(int argc, char** argv)
    //assign the color indices created above to the geometry and set the 
    //binding mode to _PER_VERTEX.
 
-   cubeGeometry->setColorArray(colors);
-   cubeGeometry->setColorIndices(colorIndexArray);
-   cubeGeometry->setColorBinding(osg::Geometry::BIND_PER_VERTEX);
    crossGeometry->setColorArray(colors);
    crossGeometry->setColorIndices(colorIndexArray);
    crossGeometry->setColorBinding(osg::Geometry::BIND_PER_VERTEX);
