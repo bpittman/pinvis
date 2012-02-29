@@ -7,8 +7,41 @@
 #include <osgViewer/Viewer>
 #include <osg/PositionAttitudeTransform>
 #include <osgGA/TrackballManipulator>
-int main()
+
+#include <iostream>
+#include <fstream>
+#include <map>
+#include <vector>
+
+using namespace std;
+
+typedef uint32_t UINT32;
+typedef UINT32 ADDRINT;
+
+typedef struct {
+   UINT32 sa; //stream starting address
+   UINT32 sl; //stream length
+   UINT32 scount; //stream count -- how many times it has been executed
+   UINT32 lscount; //number of memory-referencing instructions
+   UINT32 nstream; //number of unique next streams
+   map<UINT32,UINT32> next_stream; //<stream index,times executed> count how many times the next stream is encountered
+} stream_table_entry;
+
+typedef pair<ADDRINT,UINT32> key; //<address of block,length of block>
+typedef map<key,UINT32> stream_map; //<block key,index in stream_table>
+
+static stream_map stream_ids; //maps block keys to their index in the stream_table
+static vector<stream_table_entry*> stream_table; //one entry for each unique (by address & length) block
+
+int main(int argc, char** argv)
 {
+   if(argc<2) {
+      printf("Usage: pinvis <input file>\n");
+      exit(1);
+   }
+
+   char* filename = argv[1];
+
    osgViewer::Viewer viewer;
    osg::Group* root = new osg::Group();
    osg::Geode* cubeGeode = new osg::Geode();
@@ -178,6 +211,27 @@ int main()
    //second cube 15 units to the right of the first one, we could add 
    //this geode as the child of a transform node in our scene graph. 
 
+   ifstream inFile;
+   inFile.open(filename,ofstream::binary);
+
+   UINT32 total_streams;
+   inFile.read((char*)&total_streams,sizeof(UINT32));
+
+   for(int i=0;i<total_streams;++i) {
+      stream_table_entry* e = new stream_table_entry;
+      inFile.read((char*)(&(e->sa)),sizeof(ADDRINT));
+      inFile.read((char*)(&(e->sl)),sizeof(UINT32));
+      inFile.read((char*)(&(e->lscount)),sizeof(UINT32));
+      inFile.read((char*)(&(e->scount)),sizeof(UINT32));
+      int next_stream_count;
+      inFile.read((char*)&next_stream_count,sizeof(int));
+      for(int j=0;j<next_stream_count;++j) {
+         int stream_index, times_executed;
+         inFile.read((char*)&stream_index,sizeof(UINT32));
+         inFile.read((char*)&times_executed,sizeof(UINT32));
+         e->next_stream.insert(pair<UINT32,UINT32>(stream_index,times_executed));
+      }
+   }
    // Declare and initialize a transform node.
    osg::PositionAttitudeTransform* cubeTwoXForm =
       new osg::PositionAttitudeTransform();
@@ -193,7 +247,9 @@ int main()
    // position of the model in the scene
 
    osg::Vec3 cubeTwoPosition(15,0,0);
+   osg::Vec3 cubeTwoScale(1,1,10);
    cubeTwoXForm->setPosition( cubeTwoPosition ); 
+   cubeTwoXForm->setScale(cubeTwoScale);
 
    //The final step is to set up and enter a simulation loop.
 
