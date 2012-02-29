@@ -30,7 +30,7 @@ INCLUDE = -I. -I/usr/include/ -I/usr/include/X11/ -I/usr/local/include/GL
 INCOSG = -I/home/brian/code/OpenSceneGraph-3.0.1/include
 LDLIBS = -lm -ldl -lGL -lGLU -lpthread -lXext -lX11
 LDFLAGS =  -L. -L/usr/lib -L/usr/X11R6/lib -L/usr/local/lib
-LDOSG = -L/home/brian/code/OpenSceneGraph-3.0.1/lib -losg -losgViewer -losgSim -lOpenThreads -losgGA
+LDOSG = -L/home/brian/code/OpenSceneGraph-3.0.1/lib -losg -losgViewer -losgSim -lOpenThreads -losgGA -losgText
 CC = g++
 
 pinvis: pinvis.o
