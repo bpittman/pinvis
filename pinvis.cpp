@@ -33,7 +33,7 @@ typedef struct {
    char* img_name;
    char* rtn_name;
    map<UINT32,UINT32> next_stream; //<stream index,times executed> count how many times the next stream is encountered
-   osg::PositionAttitudeTransform* transform;
+   osg::PositionAttitudeTransform** transforms; //array of transforms, one transform per instruction
 } stream_table_entry;
 
 typedef pair<ADDRINT,UINT32> key; //<address of block,length of block>
@@ -262,26 +262,34 @@ int main(int argc, char** argv)
          inFile.read((char*)&times_executed,sizeof(UINT32));
          e->next_stream.insert(pair<UINT32,UINT32>(stream_index,times_executed));
       }
-      // Declare and initialize a transform node.
-      e->transform = new osg::PositionAttitudeTransform();
-      setColor(e->transform,1.0,1.0,1.0);
+      e->transforms = new osg::PositionAttitudeTransform*[e->sl];
+      for(int j=0;j<e->sl;++j) {
+         // Declare and initialize transform nodes.
+         e->transforms[j] = new osg::PositionAttitudeTransform();
+         if(e->insvalues[j] == INS_NORMAL)
+            setColor(e->transforms[j],1.0,1.0,1.0);
+         else if(e->insvalues[j] == INS_READ)
+            setColor(e->transforms[j],0.0,1.0,0.0);
+         else if(e->insvalues[j] == INS_WRITE)
+            setColor(e->transforms[j],1.0,0.0,0.0);
 
-      // Use the 'addChild' method of the osg::Group class to
-      // add the transform as a child of the root node and the
-      // cube node as a child of the transform.
+         // Use the 'addChild' method of the osg::Group class to
+         // add the transform as a child of the root node and the
+         // cube node as a child of the transform.
 
-      root->addChild(e->transform);
-      e->transform->addChild(cubeGeode);
-      ostringstream name;
-      name << e->img_name << ":" << e->rtn_name << " " << e->sl;
-      e->transform->setName(name.str());
+         root->addChild(e->transforms[j]);
+         e->transforms[j]->addChild(cubeGeode);
+         ostringstream name;
+         name << e->img_name << ":" << e->rtn_name << " " << e->sl;
+         e->transforms[j]->setName(name.str());
 
-      // Declare and initialize a Vec3 instance to change the
-      // position of the model in the scene
-      osg::Vec3 cubePosition(row,col,0);
-      osg::Vec3 cubeScale(1,1,e->sl);
-      e->transform->setPosition(cubePosition);
-      e->transform->setScale(cubeScale);
+         // Declare and initialize a Vec3 instance to change the
+         // position of the model in the scene
+         osg::Vec3 cubePosition(row,col,j);
+         osg::Vec3 cubeScale(1,1,1);
+         e->transforms[j]->setPosition(cubePosition);
+         e->transforms[j]->setScale(cubeScale);
+      }
       if(++row>=dim) {
          row=0;
          col++;
