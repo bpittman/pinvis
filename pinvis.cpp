@@ -26,6 +26,7 @@ typedef UINT32 ADDRINT;
 typedef struct {
    UINT32 sa; //stream starting address
    UINT32 sl; //stream length
+   int* insvalues; //array of Insvals, one for each instruction
    UINT32 scount; //stream count -- how many times it has been executed
    UINT32 lscount; //number of memory-referencing instructions
    UINT32 nstream; //number of unique next streams
@@ -38,6 +39,7 @@ typedef struct {
 typedef pair<ADDRINT,UINT32> key; //<address of block,length of block>
 typedef map<key,UINT32> stream_map; //<block key,index in stream_table>
 
+enum Insval { INS_NORMAL, INS_READ, INS_WRITE };
 static stream_map stream_ids; //maps block keys to their index in the stream_table
 static vector<stream_table_entry*> stream_table; //one entry for each unique (by address & length) block
 static vector<osg::Node*> highlighted; //nodes that are currently highlighted by the picking code
@@ -242,6 +244,8 @@ int main(int argc, char** argv)
       stream_table_entry* e = new stream_table_entry;
       inFile.read((char*)(&(e->sa)),sizeof(ADDRINT));
       inFile.read((char*)(&(e->sl)),sizeof(UINT32));
+      e->insvalues = new int[e->sl];
+      inFile.read((char*)(e->insvalues),sizeof(int)*e->sl);
       inFile.read((char*)(&(e->lscount)),sizeof(UINT32));
       inFile.read((char*)(&(e->scount)),sizeof(UINT32));
       inFile.read((char*)(&(img_size)),sizeof(UINT32));

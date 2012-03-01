@@ -11,6 +11,7 @@ using namespace std;
 typedef struct {
    ADDRINT sa; //stream starting address
    UINT32  sl; //stream length
+   int*    insvalues; //array of Insval's, one for each instruction
    UINT32  scount; //stream count -- how many times it has been executed
    UINT32  lscount; //number of memory-referencing instructions
    UINT32  nstream; //number of unique next streams
@@ -21,6 +22,8 @@ typedef struct {
 
 typedef pair<ADDRINT,UINT32> key; //<address of block,length of block>
 typedef map<key,UINT32> stream_map; //<block key,index in stream_table>
+
+enum Insval { INS_NORMAL, INS_READ, INS_WRITE };
 
 static stream_map stream_ids; //maps block keys to their index in the stream_table
 static vector<stream_table_entry*> stream_table; //one entry for each unique (by address & length) block
@@ -36,8 +39,8 @@ static vector<string> img_name_list;
 static vector<string> rtn_name_list;
 
 //This function is called before every block
-VOID before_block(ADDRINT sa, UINT32 sl, UINT32 lscount,
-                  UINT32 img, UINT32 rtn)
+VOID before_block(ADDRINT sa, UINT32 sl, void* insvalues,
+                  UINT32 lscount, UINT32 img, UINT32 rtn)
 {
    //increment counters
    numStreamD++;
@@ -53,6 +56,7 @@ VOID before_block(ADDRINT sa, UINT32 sl, UINT32 lscount,
        e->scount = 0;
        e->sa = sa;
        e->sl = sl;
+       e->insvalues = (int*)insvalues;
        e->lscount = lscount;
        e->img = img;
        e->rtn = rtn;
@@ -114,10 +118,20 @@ VOID Trace(TRACE trace, VOID *v)
    //Visit every basic block in the trace
    for (BBL bbl = TRACE_BblHead(trace); BBL_Valid(bbl); bbl = BBL_Next(bbl))
    {
+       int* insvals = new int[BBL_NumIns(bbl)];
+       int insctr = 0;
        //count memory referencing instructions
        UINT32 memory_refs = 0;
+       Insval ins_value = INS_NORMAL;
        for (INS ins = BBL_InsHead(bbl); INS_Valid(ins); ins = INS_Next(ins)) {
-           if (INS_IsMemoryRead(ins) || INS_IsMemoryWrite(ins))
+           if (INS_IsMemoryRead(ins))
+               ins_value = INS_READ;
+           else if (INS_IsMemoryWrite(ins))
+               ins_value = INS_WRITE;
+           else
+               ins_value = INS_NORMAL;
+           insvals[insctr++] = ins_value;
+           if(ins_value == INS_READ || ins_value == INS_WRITE)
                memory_refs++;
        }
 
@@ -125,6 +139,7 @@ VOID Trace(TRACE trace, VOID *v)
        BBL_InsertCall(bbl, IPOINT_BEFORE, (AFUNPTR)before_block,
                       IARG_ADDRINT, BBL_Address(bbl),
                       IARG_UINT32,  BBL_NumIns(bbl),
+                      IARG_PTR,     insvals,
                       IARG_UINT32,  memory_refs,
                       IARG_UINT32,  img_name_index,
                       IARG_UINT32,  rtn_name_index,
@@ -151,6 +166,7 @@ VOID Fini(INT32 code, VOID *v)
        stream_table_entry* entry = stream_table[i];
        OutFile.write(reinterpret_cast <const char*>(&(entry->sa)),sizeof(ADDRINT));
        OutFile.write(reinterpret_cast <const char*>(&(entry->sl)),sizeof(UINT32));
+       OutFile.write(reinterpret_cast <const char*>(entry->insvalues),sizeof(int)*entry->sl);
        OutFile.write(reinterpret_cast <const char*>(&(entry->lscount)),sizeof(UINT32));
        OutFile.write(reinterpret_cast <const char*>(&(entry->scount)),sizeof(UINT32));
        const char* img_name = img_name_list[entry->img].c_str();
