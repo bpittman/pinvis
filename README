@@ -2,7 +2,7 @@ Build steps:
 > vi Makefile.pin.gnu.config #set PIN_HOME to the rootdir of pintool
 > make
 > ./runpin
-> ./runpinvis
+> ./runpinvis streamcount.bin
 
 TODO:
 instruction-level visualization
@@ -16,3 +16,5 @@ translation interp
 button overlay
 QT-ify
 testing
+start pintool from within pinvis & connect with FIFO or similar, for realtime updates
+filter by process/function
