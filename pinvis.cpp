@@ -40,6 +40,9 @@ typedef pair<ADDRINT,UINT32> key; //<address of block,length of block>
 typedef map<key,UINT32> stream_map; //<block key,index in stream_table>
 
 enum Insval { INS_NORMAL, INS_READ, INS_WRITE };
+enum PlacementScheme { GRID_LAYOUT };
+enum ColorScheme { MEMORY_COLORING };
+
 static stream_map stream_ids; //maps block keys to their index in the stream_table
 static vector<stream_table_entry*> stream_table; //one entry for each unique (by address & length) block
 static vector<osg::Node*> highlighted; //nodes that are currently highlighted by the picking code
@@ -208,6 +211,41 @@ osg::Node* createHUD(osgText::Text* updateText)
     return hudCamera;
 }
 
+void placeStreams(int scheme) {
+   //a grid with a column in each cell representing each stream
+   if(scheme == GRID_LAYOUT) {
+      int dim = ceil(sqrt(stream_table.size()));
+      int row=0;
+      int col=0;
+      for(int i=0;i<stream_table.size();++i) {
+         for(int j=0;j<stream_table[i]->sl;++j) {
+            osg::Vec3 cubePosition(row,col,j);
+            stream_table[i]->transforms[j]->setPosition(cubePosition);
+         }
+	 if(++row>=dim) {
+	    row=0;
+	    col++;
+	 }
+      }
+   }
+}
+
+void colorStreams(int scheme) {
+   //green==memory read, red==memory write, white==no memory access
+   if(scheme == MEMORY_COLORING) {
+      for(int i=0;i<stream_table.size();++i) {
+         for(int j=0;j<stream_table[i]->sl;++j) {
+	    if(stream_table[i]->insvalues[j] == INS_NORMAL)
+	       setColor(stream_table[i]->transforms[j],1.0,1.0,1.0);
+	    else if(stream_table[i]->insvalues[j] == INS_READ)
+	       setColor(stream_table[i]->transforms[j],0.0,1.0,0.0);
+	    else if(stream_table[i]->insvalues[j] == INS_WRITE)
+	       setColor(stream_table[i]->transforms[j],1.0,0.0,0.0);
+         }
+      }
+   }
+}
+
 int main(int argc, char** argv)
 {
    if(argc<2) {
@@ -234,11 +272,8 @@ int main(int argc, char** argv)
    inFile.open(filename,ofstream::binary);
 
    UINT32 total_streams, dim;
-   int row=0;
-   int col=0;
    int img_size=0,rtn_size=0;
    inFile.read((char*)&total_streams,sizeof(UINT32));
-   dim = ceil(sqrt(total_streams));
 
    for(int i=0;i<total_streams;++i) {
       stream_table_entry* e = new stream_table_entry;
@@ -266,12 +301,6 @@ int main(int argc, char** argv)
       for(int j=0;j<e->sl;++j) {
          // Declare and initialize transform nodes.
          e->transforms[j] = new osg::PositionAttitudeTransform();
-         if(e->insvalues[j] == INS_NORMAL)
-            setColor(e->transforms[j],1.0,1.0,1.0);
-         else if(e->insvalues[j] == INS_READ)
-            setColor(e->transforms[j],0.0,1.0,0.0);
-         else if(e->insvalues[j] == INS_WRITE)
-            setColor(e->transforms[j],1.0,0.0,0.0);
 
          // Use the 'addChild' method of the osg::Group class to
          // add the transform as a child of the root node and the
@@ -282,19 +311,12 @@ int main(int argc, char** argv)
          ostringstream name;
          name << e->img_name << ":" << e->rtn_name << " " << e->sl;
          e->transforms[j]->setName(name.str());
-
-         // Declare and initialize a Vec3 instance to change the
-         // position of the model in the scene
-         osg::Vec3 cubePosition(row,col,j);
-         osg::Vec3 cubeScale(1,1,1);
-         e->transforms[j]->setPosition(cubePosition);
-         e->transforms[j]->setScale(cubeScale);
       }
-      if(++row>=dim) {
-         row=0;
-         col++;
-      }
+      stream_table.push_back(e);
    }
+
+   placeStreams(GRID_LAYOUT);
+   colorStreams(MEMORY_COLORING);
 
    //The final step is to set up and enter a simulation loop.
 
