@@ -40,7 +40,7 @@ typedef pair<ADDRINT,UINT32> key; //<address of block,length of block>
 typedef map<key,UINT32> stream_map; //<block key,index in stream_table>
 
 enum Insval { INS_NORMAL, INS_READ, INS_WRITE };
-enum PlacementScheme { GRID_LAYOUT };
+enum PlacementScheme { GRID_LAYOUT, ROW_LAYOUT };
 enum ColorScheme { MEMORY_COLORING };
 
 static stream_map stream_ids; //maps block keys to their index in the stream_table
@@ -228,6 +228,20 @@ void placeStreams(int scheme) {
 	 }
       }
    }
+
+   //2d row layout
+   else if(scheme == ROW_LAYOUT) {
+      int row=0;
+      int col=0;
+      for(int i=0;i<stream_table.size();++i) {
+	 for(int j=0;j<stream_table[i]->sl;++j) {
+	    osg::Vec3 cubePosition(row,0,col++);
+	    stream_table[i]->transforms[j]->setPosition(cubePosition);
+	 }
+         row++;
+         col=0;
+      }
+   }
 }
 
 void colorStreams(int scheme) {
@@ -315,7 +329,7 @@ int main(int argc, char** argv)
       stream_table.push_back(e);
    }
 
-   placeStreams(GRID_LAYOUT);
+   placeStreams(ROW_LAYOUT);
    colorStreams(MEMORY_COLORING);
 
    //The final step is to set up and enter a simulation loop.
