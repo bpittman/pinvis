@@ -338,6 +338,7 @@ int main(int argc, char** argv)
    //viewer.run();
         
    viewer.setCameraManipulator(new osgGA::TrackballManipulator());
+   viewer.setUpViewInWindow(0,0,1024,768);
    viewer.realize();
 
    while( !viewer.done() )
