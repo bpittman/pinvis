@@ -17,4 +17,6 @@ button overlay
 QT-ify
 testing
 start pintool from within pinvis & connect with FIFO or similar, for realtime updates
-filter by process/function
+filter by process/function (from pintool or vistool)
+try parent injection?
+timeline features
