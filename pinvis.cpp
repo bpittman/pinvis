@@ -49,6 +49,8 @@ static vector<osg::Node*> highlighted; //nodes that are currently highlighted by
 
 void clearHighlighted(void);
 void setColor(osg::Node*,float r, float g, float b);
+void placeStreams(int scheme);
+void colorStreams(int scheme);
 
 // class to handle events with a pick
 class PickHandler : public osgGA::GUIEventHandler {
@@ -140,6 +142,39 @@ void PickHandler::pick(osgViewer::View* view, const osgGA::GUIEventAdapter& ea)
     }
     setLabel(gdlist);
 }
+
+class KeyboardEventHandler : public osgGA::GUIEventHandler
+{
+    public:
+       virtual bool handle(const osgGA::GUIEventAdapter& ea,osgGA::GUIActionAdapter&);
+       virtual void accept(osgGA::GUIEventHandlerVisitor& v)   { v.visit(*this); };
+};
+
+bool KeyboardEventHandler::handle(const osgGA::GUIEventAdapter& ea,osgGA::GUIActionAdapter& aa)
+{
+   switch(ea.getEventType())
+   {
+      case(osgGA::GUIEventAdapter::KEYDOWN):
+      {
+          switch(ea.getKey())
+          {
+             case '1':
+                placeStreams(GRID_LAYOUT);
+                return false;
+                break;
+             case '2':
+                placeStreams(ROW_LAYOUT);
+                return false;
+                break;
+             default:
+                return false;
+          }
+      }
+      default:
+         return false;
+   }
+}
+
 
 void clearHighlighted(void) {
    for(int i=0;i<highlighted.size();++i) {
@@ -281,6 +316,7 @@ int main(int argc, char** argv)
    osg::ref_ptr<osgText::Text> updateText = new osgText::Text;
    root->addChild(createHUD(updateText.get()));
    viewer.addEventHandler(new PickHandler(updateText.get()));
+   viewer.addEventHandler(new KeyboardEventHandler());
 
    ifstream inFile;
    inFile.open(filename,ofstream::binary);
@@ -329,7 +365,7 @@ int main(int argc, char** argv)
       stream_table.push_back(e);
    }
 
-   placeStreams(ROW_LAYOUT);
+   placeStreams(GRID_LAYOUT);
    colorStreams(MEMORY_COLORING);
 
    //The final step is to set up and enter a simulation loop.
