@@ -4,6 +4,7 @@
 #include <osg/Geometry>
 #include <osg/Material>
 #include <osg/Texture2D>
+#include <osg/AnimationPath>
 #include <osgDB/ReadFile> 
 #include <osgViewer/Viewer>
 #include <osg/PositionAttitudeTransform>
@@ -34,6 +35,7 @@ typedef struct {
    char* rtn_name;
    map<UINT32,UINT32> next_stream; //<stream index,times executed> count how many times the next stream is encountered
    osg::PositionAttitudeTransform** transforms; //array of transforms, one transform per instruction
+   osg::AnimationPath** animationPaths; //array of animation paths, one path per instruction
 } stream_table_entry;
 
 typedef pair<ADDRINT,UINT32> key; //<address of block,length of block>
@@ -254,8 +256,12 @@ void placeStreams(int scheme) {
       int col=0;
       for(int i=0;i<stream_table.size();++i) {
          for(int j=0;j<stream_table[i]->sl;++j) {
-            osg::Vec3 cubePosition(row,col,j);
-            stream_table[i]->transforms[j]->setPosition(cubePosition);
+            osg::AnimationPath* ap = stream_table[i]->animationPaths[j];
+            ap->setLoopMode( osg::AnimationPath::NO_LOOPING );
+            osg::Vec3 curPos = stream_table[i]->transforms[j]->getPosition();
+            ap->insert(0.0f,osg::AnimationPath::ControlPoint(curPos));
+            ap->insert(1.0f,osg::AnimationPath::ControlPoint(osg::Vec3(row,col,j)));
+            stream_table[i]->transforms[j]->setUpdateCallback(new osg::AnimationPathCallback(ap));
          }
 	 if(++row>=dim) {
 	    row=0;
@@ -270,8 +276,12 @@ void placeStreams(int scheme) {
       int col=0;
       for(int i=0;i<stream_table.size();++i) {
 	 for(int j=0;j<stream_table[i]->sl;++j) {
-	    osg::Vec3 cubePosition(row,0,col++);
-	    stream_table[i]->transforms[j]->setPosition(cubePosition);
+            osg::AnimationPath* ap = stream_table[i]->animationPaths[j];
+            ap->setLoopMode( osg::AnimationPath::NO_LOOPING );
+            osg::Vec3 curPos = stream_table[i]->transforms[j]->getPosition();
+            ap->insert(0.0f,osg::AnimationPath::ControlPoint(osg::Vec3(curPos)));
+            ap->insert(1.0f,osg::AnimationPath::ControlPoint(osg::Vec3(row,0,col++)));
+            stream_table[i]->transforms[j]->setUpdateCallback(new osg::AnimationPathCallback(ap));
 	 }
          row++;
          col=0;
@@ -348,9 +358,13 @@ int main(int argc, char** argv)
          e->next_stream.insert(pair<UINT32,UINT32>(stream_index,times_executed));
       }
       e->transforms = new osg::PositionAttitudeTransform*[e->sl];
+      e->animationPaths = new osg::AnimationPath*[e->sl];
+
       for(int j=0;j<e->sl;++j) {
          // Declare and initialize transform nodes.
          e->transforms[j] = new osg::PositionAttitudeTransform();
+         e->transforms[j]->setPosition(osg::Vec3(0,0,0));
+         e->animationPaths[j] = new osg::AnimationPath();
 
          // Use the 'addChild' method of the osg::Group class to
          // add the transform as a child of the root node and the
