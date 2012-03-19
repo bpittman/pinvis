@@ -2,5 +2,7 @@ obj-ia32
 runpin
 runpinvis
 pinvis
+test_pinvis
 *.o
+*.a
 *.bin

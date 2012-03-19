@@ -4,8 +4,10 @@ OPT=-O2
 CXXFLAGS = -fomit-frame-pointer -Wall -Werror -Wno-unknown-pragmas $(DBG) $(OPT) -MMD
 TOOL_ROOTS = streamcount
 TOOLS = $(TOOL_ROOTS:%=$(OBJDIR)%$(PINTOOL_SUFFIX))
+GTEST_DIR=/home/brian/code/gtest-1.6.0
+GTEST_INCLUDE=-I${GTEST_DIR} -I${GTEST_DIR}/include
 
-all: tools runpin pinvis
+all: tools runpin pinvis test
 
 tools: $(OBJDIR) $(TOOLS)
 
@@ -39,5 +41,15 @@ pinvis: pinvis.o
 pinvis.o: pinvis.cpp
 	$(CXX) $(CFLAGS) $(INCLUDE) $(INCOSG) -o $@ $<
 
+test: test_pinvis.cpp libgtest.a
+	${CC} ${GTEST_INCLUDE} test_pinvis.cpp libgtest.a -o test_pinvis
+	./test_pinvis
+
+libgtest.a: gtest-all.o
+	ar -rv libgtest.a gtest-all.o
+
+gtest-all.o: ${GTEST_DIR}/src/gtest-all.cc
+	${CC} ${GTEST_INCLUDE} -DGTEST_HAS_PTHREAD=0 -c ${GTEST_DIR}/src/gtest-all.cc
+
 clean:
-	-rm -rf $(OBJDIR) runpin *.o pinvis
+	-rm -rf $(OBJDIR) runpin *.o *.a pinvis test_pinvis
