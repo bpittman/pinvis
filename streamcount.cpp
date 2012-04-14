@@ -213,6 +213,33 @@ VOID Fini(INT32 code, VOID *v)
        }
    }
    OutFile.close();
+
+   ofstream DebugFile;
+   DebugFile.open("debug.txt");
+   //write global stats
+   DebugFile << "numStreamS: " << stream_table.size() << endl;
+   DebugFile << "numStreamD: " << numStreamD << endl;
+   DebugFile << "numMemRef: "  << numMemRef << endl;
+   DebugFile << "numIrefs: " << numIrefs << endl;
+   DebugFile << "maxStreamLen: " << maxStreamLen << endl;
+   DebugFile << "avgStreamLen: " << (double)numIrefs/numStreamD << endl;
+
+   //write streams
+   for(UINT32 i=0;i<stream_table.size();++i) {
+       stream_table_entry* entry = stream_table[i];
+
+       DebugFile << i << ": (0x" << hex << entry->sa << ", " << dec <<
+               entry->sl << ", " << entry->lscount << "), "
+               << "(" << entry->scount << "); " ;
+
+       DebugFile << "{ ";
+       for(map<UINT32,UINT32>::iterator it=entry->next_stream.begin();it!=entry->next_stream.end();++it) {
+           DebugFile << "(" << it->first << "," << it->second << ")";
+       }
+       DebugFile << " }" << endl;
+   }
+   DebugFile.close();
+
 }
 
 /* =====================================================================
