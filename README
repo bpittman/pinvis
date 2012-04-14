@@ -5,14 +5,13 @@ Build steps:
 > ./runpinvis streamcount.bin
 
 TODO:
+fix streams per Milenkovic's notes
 instruction-level visualization
 memory visualization
 return visualization
+filtering
+better camera control
 syscall visualization??
-translation interp
- *osgParticle::Particle?
- *osgAnimation/easemotion?
- *http://webcache.googleusercontent.com/search?q=cache:YAJ-HET3pMgJ:www.cuboslocos.com/tutorials/OSG-BasicAnimation&hl=en&gl=us&strip=1 ?
 button overlay
 QT-ify
 testing
