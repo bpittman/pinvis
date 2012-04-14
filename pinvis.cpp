@@ -260,7 +260,7 @@ void placeStreams(int scheme) {
             ap->setLoopMode( osg::AnimationPath::NO_LOOPING );
             osg::Vec3 curPos = stream_table[i]->transforms[j]->getPosition();
             ap->insert(0.0f,osg::AnimationPath::ControlPoint(curPos));
-            ap->insert(1.0f,osg::AnimationPath::ControlPoint(osg::Vec3(row,col,j)));
+            ap->insert(1.0f,osg::AnimationPath::ControlPoint(osg::Vec3(row-dim/2,col-dim/2,j)));
             stream_table[i]->transforms[j]->setUpdateCallback(new osg::AnimationPathCallback(ap));
          }
 	 if(++row>=dim) {
@@ -274,13 +274,14 @@ void placeStreams(int scheme) {
    else if(scheme == ROW_LAYOUT) {
       int row=0;
       int col=0;
+      int dim = stream_table.size();
       for(int i=0;i<stream_table.size();++i) {
 	 for(int j=0;j<stream_table[i]->sl;++j) {
             osg::AnimationPath* ap = stream_table[i]->animationPaths[j];
             ap->setLoopMode( osg::AnimationPath::NO_LOOPING );
             osg::Vec3 curPos = stream_table[i]->transforms[j]->getPosition();
             ap->insert(0.0f,osg::AnimationPath::ControlPoint(osg::Vec3(curPos)));
-            ap->insert(1.0f,osg::AnimationPath::ControlPoint(osg::Vec3(row,0,col++)));
+            ap->insert(1.0f,osg::AnimationPath::ControlPoint(osg::Vec3(row-dim/2,0,col++)));
             stream_table[i]->transforms[j]->setUpdateCallback(new osg::AnimationPathCallback(ap));
 	 }
          row++;
@@ -390,6 +391,14 @@ int main(int argc, char** argv)
    viewer.setCameraManipulator(new osgGA::TrackballManipulator());
    viewer.setUpViewInWindow(0,0,1024,768);
    viewer.realize();
+
+   osg::Vec3 lookFrom, lookAt, up;
+   lookFrom = osg::Vec3(0,sqrt(stream_table.size())*2,1);
+   lookAt = osg::Vec3(0,0,1);
+   up = osg::Vec3(0,0,1);
+
+   viewer.getCameraManipulator()->setHomePosition(lookFrom, lookAt, up, false);
+   viewer.home();
 
    while( !viewer.done() )
    {
