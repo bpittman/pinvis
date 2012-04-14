@@ -11,7 +11,7 @@ using namespace std;
 typedef struct {
    ADDRINT sa; //stream starting address
    UINT32  sl; //stream length
-   int*    insvalues; //array of Insval's, one for each instruction
+   vector<int> insvalues; //array of Insval's, one for each instruction
    UINT32  scount; //stream count -- how many times it has been executed
    UINT32  lscount; //number of memory-referencing instructions
    UINT32  nstream; //number of unique next streams
@@ -38,32 +38,21 @@ static INT32 prev_stream_id = -1; //the previously executed stream's index in th
 static vector<string> img_name_list;
 static vector<string> rtn_name_list;
 
-//This function is called before every block
-VOID before_block(ADDRINT sa, UINT32 sl, void* insvalues,
-                  UINT32 lscount, UINT32 img, UINT32 rtn)
-{
-   //increment counters
-   numStreamD++;
-   numMemRef+=lscount;
-   numIrefs+=sl;
-   if(sl>maxStreamLen) maxStreamLen = sl;
+stream_table_entry* current_stream = new stream_table_entry;
 
-   //find entry in stream_table or create a new entry
-   key k(sa,sl);
+//called whenever a branch is taken: store current_stream and start a new one
+VOID branch_taken(ADDRINT sa)
+{
+   key k(current_stream->sa,current_stream->sl);
    stream_map::iterator loc = stream_ids.find(k);
    if(loc == stream_ids.end()) {
-       stream_table_entry* e = new stream_table_entry;
-       e->scount = 0;
-       e->sa = sa;
-       e->sl = sl;
-       e->insvalues = (int*)insvalues;
-       e->lscount = lscount;
-       e->img = img;
-       e->rtn = rtn;
-       stream_table.push_back(e);
+       stream_table.push_back(current_stream);
        stream_ids.insert(pair<key,UINT32>(k, stream_table.size()-1));
        loc = stream_ids.find(k);
+       if(current_stream->sl > maxStreamLen) maxStreamLen = current_stream->sl;
    }
+   //track number of times this stream was executed
+   stream_table[loc->second]->scount++;
 
    //add an entry to the previous stream's next_stream map
    if(prev_stream_id >= 0) {
@@ -76,9 +65,40 @@ VOID before_block(ADDRINT sa, UINT32 sl, void* insvalues,
        }
    }
 
-   //increment stream counter, and set the prev_stream_id before moving on
+   //track total number of streams executed
+   numStreamD++;
+
+   //set previous stream ID and reset current stream to NULL
    prev_stream_id = loc->second;
-   stream_table[loc->second]->scount++;
+   current_stream = NULL;
+}
+
+//This function is called before every block
+VOID before_block(ADDRINT sa, UINT32 sl, void* insvalues,
+                  UINT32 lscount, UINT32 img, UINT32 rtn)
+{
+   //increment counters
+   numMemRef+=lscount;
+   numIrefs+=sl;
+
+   //create a new current_stream if needed
+   if(current_stream == NULL) {
+       current_stream = new stream_table_entry;
+       current_stream->sa = sa;
+       current_stream->sl = 0;
+       current_stream->lscount = 0;
+       current_stream->scount = 0;
+       current_stream->nstream = 0;
+       current_stream->img = img;
+       current_stream->rtn = rtn;
+   }
+
+   //update current_stream values
+   current_stream->sl += sl;
+   current_stream->lscount += lscount;
+   for(unsigned int i=0;i<sl;++i) {
+      current_stream->insvalues.push_back(((int*)insvalues)[i]);
+   }
 }
 
 //Pin calls this function every time a new basic block is encountered
@@ -133,6 +153,11 @@ VOID Trace(TRACE trace, VOID *v)
            insvals[insctr++] = ins_value;
            if(ins_value == INS_READ || ins_value == INS_WRITE)
                memory_refs++;
+
+           if(INS_IsBranchOrCall(ins)) {
+              INS_InsertCall(ins, IPOINT_TAKEN_BRANCH, (AFUNPTR)branch_taken,
+                             IARG_ADDRINT, BBL_Address(bbl), IARG_END);
+           }
        }
 
        //Insert a call to before_block before every bbl
@@ -153,6 +178,9 @@ KNOB<string> KnobOutputFile(KNOB_MODE_WRITEONCE, "pintool",
 //This function is called when the application exits
 VOID Fini(INT32 code, VOID *v)
 {
+   //FIXME: hacky way of making sure the last stream gets tidied up
+   branch_taken(0);
+
    //Write to a file since cout and cerr maybe closed by the application
    ofstream OutFile;
    OutFile.open(KnobOutputFile.Value().c_str(),ofstream::binary);
@@ -166,7 +194,7 @@ VOID Fini(INT32 code, VOID *v)
        stream_table_entry* entry = stream_table[i];
        OutFile.write(reinterpret_cast <const char*>(&(entry->sa)),sizeof(ADDRINT));
        OutFile.write(reinterpret_cast <const char*>(&(entry->sl)),sizeof(UINT32));
-       OutFile.write(reinterpret_cast <const char*>(entry->insvalues),sizeof(int)*entry->sl);
+       OutFile.write(reinterpret_cast <const char*>(&(entry->insvalues.at(0))),sizeof(int)*entry->sl);
        OutFile.write(reinterpret_cast <const char*>(&(entry->lscount)),sizeof(UINT32));
        OutFile.write(reinterpret_cast <const char*>(&(entry->scount)),sizeof(UINT32));
        const char* img_name = img_name_list[entry->img].c_str();
