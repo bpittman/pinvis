@@ -45,6 +45,7 @@ typedef map<key,UINT32> stream_map; //<block key,index in stream_table>
 enum Insval { INS_NORMAL, INS_READ, INS_WRITE };
 enum PlacementScheme { GRID_LAYOUT, ROW_LAYOUT };
 enum ColorScheme { MEMORY_COLORING };
+enum HideScheme { HIDE, HIDE_ALL_ELSE };
 
 static stream_map stream_ids; //maps block keys to their index in the stream_table
 static vector<stream_table_entry*> stream_table; //one entry for each unique (by address & length) block
@@ -54,7 +55,8 @@ void clearHighlighted(void);
 void setColor(osg::Node*,float r, float g, float b);
 void placeStreams(int scheme);
 void colorStreams(int scheme);
-void hideImage();
+void hideByImage(int scheme);
+void moveToInfinity(int stream_table_index);
 
 // class to handle events with a pick
 class PickHandler : public osgGA::GUIEventHandler {
@@ -171,7 +173,10 @@ bool KeyboardEventHandler::handle(const osgGA::GUIEventAdapter& ea,osgGA::GUIAct
                 return false;
                 break;
              case 'h':
-                hideImage();
+                hideByImage(HIDE);
+                break;
+             case 'u':
+                hideByImage(HIDE_ALL_ELSE);
                 break;
              default:
                 return false;
@@ -297,7 +302,7 @@ void placeStreams(int scheme) {
    }
 }
 
-void hideImage() {
+void hideByImage(int scheme) {
    if(highlighted.size()<1) return;
    char* imgName = NULL;
    for(int i=0;i<stream_table.size();++i) {
@@ -309,17 +314,25 @@ void hideImage() {
       }
    }
    for(int i=0;i<stream_table.size();++i) {
-      if(strcmp(imgName,stream_table[i]->img_name)==0) {
-         for(int j=0;j<stream_table[i]->sl;++j) {
-            osg::AnimationPath* ap = stream_table[i]->animationPaths[j];
-            ap->setLoopMode( osg::AnimationPath::NO_LOOPING );
-            osg::Vec3 curPos = stream_table[i]->transforms[j]->getPosition();
-            ap->clear();
-            ap->insert(0.0f,osg::AnimationPath::ControlPoint(osg::Vec3(curPos)));
-            ap->insert(5.0f,osg::AnimationPath::ControlPoint(osg::Vec3(500,500,0)));
-            stream_table[i]->transforms[j]->setUpdateCallback(new osg::AnimationPathCallback(ap));
-         }
+      if(scheme==HIDE && strcmp(imgName,stream_table[i]->img_name)==0) {
+         moveToInfinity(i);
       }
+      else if(scheme==HIDE_ALL_ELSE && strcmp(imgName,stream_table[i]->img_name)!=0) {
+         moveToInfinity(i);
+      }
+   }
+}
+
+void moveToInfinity(int stream_table_index)
+{
+   for(int j=0;j<stream_table[stream_table_index]->sl;++j) {
+      osg::AnimationPath* ap = stream_table[stream_table_index]->animationPaths[j];
+      ap->setLoopMode( osg::AnimationPath::NO_LOOPING );
+      osg::Vec3 curPos = stream_table[stream_table_index]->transforms[j]->getPosition();
+      ap->clear();
+      ap->insert(0.0f,osg::AnimationPath::ControlPoint(osg::Vec3(curPos)));
+      ap->insert(5.0f,osg::AnimationPath::ControlPoint(osg::Vec3(500,500,0)));
+      stream_table[stream_table_index]->transforms[j]->setUpdateCallback(new osg::AnimationPathCallback(ap));
    }
 }
 
