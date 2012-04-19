@@ -5,7 +5,7 @@ Build steps:
 > ./runpinvis streamcount.bin
 
 TODO:
-fix streams per Milenkovic's notes
+Use ManualExamples/invocation.cpp to instrument routines?
 instruction-level visualization
 memory visualization
 return visualization
