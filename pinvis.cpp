@@ -56,6 +56,7 @@ static vector<stream_table_entry*> stream_table; //one entry for each unique (by
 static vector<osg::Node*> highlighted; //nodes that are currently highlighted by the picking code
 static vector<UINT32> stream_call_order;
 static int currentColoring = MEMORY_COLORING;
+static osg::ref_ptr<osgText::Text> updateText = new osgText::Text;
 
 void setColor(osg::Node*,float r, float g, float b);
 void placeStreams(int scheme);
@@ -130,7 +131,7 @@ void PickHandler::pick(osgViewer::View* view, const osgGA::GUIEventAdapter& ea)
             std::ostringstream os;
             if(hitr->nodePath.size() >= 2) {
                 osg::Node *node = hitr->nodePath[hitr->nodePath.size()-2];
-                os << "Function \"" << node->getName()<<"\""<<endl;
+                os << node->getName()<<"\""<<endl;
                 highlighted.push_back(node);
             }
             else if (!hitr->nodePath.empty() && !(hitr->nodePath.back()->getName().empty()))
@@ -257,6 +258,7 @@ osg::Node* createHUD(osgText::Text* updateText)
     }
 
     { // this displays what has been selected
+        position = osg::Vec3(150.0,40.0,0.0);
         osg::Geode* geode = new osg::Geode();
         osg::StateSet* stateset = geode->getOrCreateStateSet();
         stateset->setMode(GL_LIGHTING,osg::StateAttribute::OFF);
@@ -296,6 +298,8 @@ void updateTimeline(int steps) {
    } while(stream_table[stream_call_order[current_stream_call]]->hidden==true);
 
    int current_stream = stream_call_order[current_stream_call];
+
+   updateText->setText(stream_table[current_stream]->transforms[0]->getName());
 
    for(int i=0;i<stream_table[current_stream]->sl;++i) {
       setColor(stream_table[current_stream]->transforms[i],0.0,0.0,1.0);
@@ -445,9 +449,9 @@ int main(int argc, char** argv)
 
    cubeGeode->addDrawable(new osg::ShapeDrawable(new osg::Box(osg::Vec3(0.5,0.5,0.5),1.0,1.0,1.0))); 
 
-   osg::ref_ptr<osgText::Text> updateText = new osgText::Text;
    root->addChild(createHUD(updateText.get()));
-   viewer.addEventHandler(new PickHandler(updateText.get()));
+   PickHandler *pickHandler = new PickHandler(updateText.get());
+   viewer.addEventHandler(pickHandler);
    viewer.addEventHandler(new KeyboardEventHandler());
 
    ifstream inFile;
