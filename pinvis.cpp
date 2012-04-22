@@ -55,7 +55,6 @@ static vector<stream_table_entry*> stream_table; //one entry for each unique (by
 static vector<osg::Node*> highlighted; //nodes that are currently highlighted by the picking code
 static vector<UINT32> stream_call_order;
 
-void clearHighlighted(void);
 void setColor(osg::Node*,float r, float g, float b);
 void placeStreams(int scheme);
 void colorStreams(int scheme);
@@ -129,12 +128,7 @@ void PickHandler::pick(osgViewer::View* view, const osgGA::GUIEventAdapter& ea)
             std::ostringstream os;
             if(hitr->nodePath.size() >= 2) {
                 osg::Node *node = hitr->nodePath[hitr->nodePath.size()-2];
-                osg::StateSet *ss = node->getOrCreateStateSet();
-                osg::Material *nm = new osg::Material;
-                nm->setDiffuse(osg::Material::FRONT,osg::Vec4(0.9f,.2f,.2f,1.0f));
-                ss->setAttribute(nm);
                 os << "Function \"" << node->getName()<<"\""<<endl;
-                clearHighlighted();
                 highlighted.push_back(node);
             }
             else if (!hitr->nodePath.empty() && !(hitr->nodePath.back()->getName().empty()))
@@ -203,13 +197,6 @@ bool KeyboardEventHandler::handle(const osgGA::GUIEventAdapter& ea,osgGA::GUIAct
       }
       default:
          return false;
-   }
-}
-
-
-void clearHighlighted(void) {
-   for(int i=0;i<highlighted.size();++i) {
-      setColor(highlighted[i],1.0,1.0,1.0);
    }
 }
 
