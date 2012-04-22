@@ -40,6 +40,7 @@ typedef struct {
    map<UINT32,UINT32> next_stream; //<stream index,times executed> count how many times the next stream is encountered
    osg::PositionAttitudeTransform** transforms; //array of transforms, one transform per instruction
    osg::AnimationPath** animationPaths; //array of animation paths, one path per instruction
+   bool hidden;
 } stream_table_entry;
 
 typedef pair<ADDRINT,UINT32> key; //<address of block,length of block>
@@ -279,16 +280,20 @@ void updateTimeline() {
 
    colorStreams(MEMORY_COLORING);
 
-   current_stream_call++;
-   if(current_stream_call>stream_call_order.size()-1) {
-      current_stream_call = 0;
-   }
+   do {
+      current_stream_call++;
+      if(current_stream_call>stream_call_order.size()-1) {
+         current_stream_call = 0;
+      }
+   } while(stream_table[stream_call_order[current_stream_call]]->hidden==true);
+
    int current_stream = stream_call_order[current_stream_call];
 
    for(int i=0;i<stream_table[current_stream]->sl;++i) {
       setColor(stream_table[current_stream]->transforms[i],0.0,0.0,1.0);
    }
 }
+
 void placeStreams(int scheme) {
    //a grid with a column in each cell representing each stream
    if(scheme == GRID_LAYOUT) {
@@ -346,9 +351,11 @@ void hideByImage(int scheme) {
    }
    for(int i=0;i<stream_table.size();++i) {
       if(scheme==HIDE && strcmp(imgName,stream_table[i]->img_name)==0) {
+         stream_table[i]->hidden = true;
          moveToInfinity(i);
       }
       else if(scheme==HIDE_ALL_ELSE && strcmp(imgName,stream_table[i]->img_name)!=0) {
+         stream_table[i]->hidden = true;
          moveToInfinity(i);
       }
    }
@@ -442,6 +449,7 @@ int main(int argc, char** argv)
 
    for(int i=0;i<total_streams;++i) {
       stream_table_entry* e = new stream_table_entry;
+      e->hidden = false;
       inFile.read((char*)(&(e->sa)),sizeof(ADDRINT));
       inFile.read((char*)(&(e->sl)),sizeof(UINT32));
       e->insvalues = new int[e->sl];
