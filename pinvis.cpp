@@ -9,6 +9,8 @@
 #include <osgViewer/Viewer>
 #include <osg/PositionAttitudeTransform>
 #include <osgGA/TrackballManipulator>
+#include <osgGA/UFOManipulator>
+#include <osgGA/KeySwitchMatrixManipulator>
 #include <osg/ShapeDrawable>
 #include <osgText/Text>
 #include <osg/io_utils>
@@ -313,7 +315,7 @@ void placeStreams(int scheme) {
             osg::Vec3 curPos = stream_table[i]->transforms[j]->getPosition();
             ap->clear();
             ap->insert(0.0f,osg::AnimationPath::ControlPoint(curPos));
-            ap->insert(1.0f,osg::AnimationPath::ControlPoint(osg::Vec3(row-dim/2,col-dim/2,j)));
+            ap->insert(1.0f,osg::AnimationPath::ControlPoint(osg::Vec3(row-dim/2,-j,col-dim/2)));
             stream_table[i]->transforms[j]->setUpdateCallback(new osg::AnimationPathCallback(ap));
          }
 	 if(++row>=dim) {
@@ -516,12 +518,16 @@ int main(int argc, char** argv)
    viewer.setSceneData( root );
    //viewer.run();
         
-   viewer.setCameraManipulator(new osgGA::TrackballManipulator());
+   osgGA::KeySwitchMatrixManipulator* keyswitchManipulator = new osgGA::KeySwitchMatrixManipulator;
+   keyswitchManipulator->addMatrixManipulator('8', "Trackball", new osgGA::TrackballManipulator());
+   keyswitchManipulator->addMatrixManipulator('9', "UFO", new osgGA::UFOManipulator());
+
+   viewer.setCameraManipulator(keyswitchManipulator);
    viewer.setUpViewInWindow(0,0,1024,768);
    viewer.realize();
 
    osg::Vec3 lookFrom, lookAt, up;
-   lookFrom = osg::Vec3(0,-sqrt(stream_table.size())*2,1);
+   lookFrom = osg::Vec3(0,-sqrt(stream_table.size())*3,0);
    lookAt = osg::Vec3(0,0,1);
    up = osg::Vec3(0,0,1);
 
