@@ -55,6 +55,7 @@ static stream_map stream_ids; //maps block keys to their index in the stream_tab
 static vector<stream_table_entry*> stream_table; //one entry for each unique (by address & length) block
 static vector<osg::Node*> highlighted; //nodes that are currently highlighted by the picking code
 static vector<UINT32> stream_call_order;
+static int currentColoring = MEMORY_COLORING;
 
 void setColor(osg::Node*,float r, float g, float b);
 void placeStreams(int scheme);
@@ -278,7 +279,7 @@ void updateTimeline() {
    static int current_stream_call = -1;
    int prev_stream_call = max(0,current_stream_call);
 
-   colorStreams(MEMORY_COLORING);
+   colorStreams(currentColoring);
 
    do {
       current_stream_call++;
@@ -377,6 +378,7 @@ void moveToInfinity(int stream_table_index)
 void colorStreams(int scheme) {
    //green==memory read, red==memory write, white==no memory access
    if(scheme == MEMORY_COLORING) {
+      currentColoring = MEMORY_COLORING;
       for(int i=0;i<stream_table.size();++i) {
          for(int j=0;j<stream_table[i]->sl;++j) {
 	    if(stream_table[i]->insvalues[j] == INS_NORMAL)
@@ -389,6 +391,7 @@ void colorStreams(int scheme) {
       }
    }
    else if(scheme == EXECUTION_FREQ_COLORING) {
+      currentColoring = EXECUTION_FREQ_COLORING;
       int min_size = stream_table[0]->scount;
       int max_size = min_size;
 
