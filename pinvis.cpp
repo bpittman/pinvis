@@ -17,6 +17,7 @@
 #include <fstream>
 #include <string.h>
 #include <map>
+#include <algorithm>
 #include <vector>
 #include <math.h>
 
@@ -58,6 +59,7 @@ void placeStreams(int scheme);
 void colorStreams(int scheme);
 void hideByImage(int scheme);
 void moveToInfinity(int stream_table_index);
+void updateTimeline();
 
 // class to handle events with a pick
 class PickHandler : public osgGA::GUIEventHandler {
@@ -179,6 +181,9 @@ bool KeyboardEventHandler::handle(const osgGA::GUIEventAdapter& ea,osgGA::GUIAct
              case 'u':
                 hideByImage(HIDE_ALL_ELSE);
                 break;
+             case 'n':
+                updateTimeline();
+                break;
              default:
                 return false;
           }
@@ -259,6 +264,22 @@ osg::Node* createHUD(osgText::Text* updateText)
     return hudCamera;
 }
 
+void updateTimeline() {
+   static int current_stream_call = -1;
+   int prev_stream_call = max(0,current_stream_call);
+
+   colorStreams(MEMORY_COLORING);
+
+   current_stream_call++;
+   if(current_stream_call>stream_call_order.size()-1) {
+      current_stream_call = 0;
+   }
+   int current_stream = stream_call_order[current_stream_call];
+
+   for(int i=0;i<stream_table[current_stream]->sl;++i) {
+      setColor(stream_table[current_stream]->transforms[i],0.0,0.0,1.0);
+   }
+}
 void placeStreams(int scheme) {
    //a grid with a column in each cell representing each stream
    if(scheme == GRID_LAYOUT) {
