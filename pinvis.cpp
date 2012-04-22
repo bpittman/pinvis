@@ -62,7 +62,7 @@ void placeStreams(int scheme);
 void colorStreams(int scheme);
 void hideByImage(int scheme);
 void moveToInfinity(int stream_table_index);
-void updateTimeline();
+void updateTimeline(int steps);
 
 // class to handle events with a pick
 class PickHandler : public osgGA::GUIEventHandler {
@@ -190,7 +190,11 @@ bool KeyboardEventHandler::handle(const osgGA::GUIEventAdapter& ea,osgGA::GUIAct
                 return false;
                 break;
              case 'n':
-                updateTimeline();
+                updateTimeline(1);
+                return false;
+                break;
+             case 'p':
+                updateTimeline(-1);
                 return false;
                 break;
              default:
@@ -273,7 +277,7 @@ osg::Node* createHUD(osgText::Text* updateText)
     return hudCamera;
 }
 
-void updateTimeline() {
+void updateTimeline(int steps) {
    if(stream_call_order.size()<1) return;
 
    static int current_stream_call = -1;
@@ -282,8 +286,11 @@ void updateTimeline() {
    colorStreams(currentColoring);
 
    do {
-      current_stream_call++;
-      if(current_stream_call>stream_call_order.size()-1) {
+      current_stream_call+=steps;
+      if(current_stream_call<0) {
+         current_stream_call = stream_call_order.size()-1;
+      }
+      else if(current_stream_call>stream_call_order.size()-1) {
          current_stream_call = 0;
       }
    } while(stream_table[stream_call_order[current_stream_call]]->hidden==true);
