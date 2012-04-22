@@ -37,6 +37,7 @@ static INT32 prev_stream_id = -1; //the previously executed stream's index in th
 
 static vector<string> img_name_list;
 static vector<string> rtn_name_list;
+static vector<UINT32> stream_call_order;
 
 stream_table_entry* current_stream = new stream_table_entry;
 
@@ -51,6 +52,10 @@ VOID branch_taken(ADDRINT sa)
        loc = stream_ids.find(k);
        if(current_stream->sl > maxStreamLen) maxStreamLen = current_stream->sl;
    }
+
+   //update the timeline of stream calls
+   stream_call_order.push_back(loc->second);
+
    //track number of times this stream was executed
    stream_table[loc->second]->scount++;
 
@@ -182,8 +187,19 @@ VOID Fini(INT32 code, VOID *v)
    branch_taken(0);
 
    //Write to a file since cout and cerr maybe closed by the application
-   ofstream OutFile;
+   ofstream OutFile,TimelineFile;
    OutFile.open(KnobOutputFile.Value().c_str(),ofstream::binary);
+   TimelineFile.open("timeline.bin",ofstream::binary);
+
+
+   int call_order_size = stream_call_order.size();
+   TimelineFile.write((char*)&call_order_size,sizeof(call_order_size));
+   for(UINT32 i=0;i<stream_call_order.size();++i) {
+      UINT32 call = stream_call_order[i];
+      TimelineFile.write((char*)&call,sizeof(UINT32));
+   }
+
+   TimelineFile.close();
 
    //write global stats
    int table_size = stream_table.size();

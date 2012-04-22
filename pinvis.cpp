@@ -50,6 +50,7 @@ enum HideScheme { HIDE, HIDE_ALL_ELSE };
 static stream_map stream_ids; //maps block keys to their index in the stream_table
 static vector<stream_table_entry*> stream_table; //one entry for each unique (by address & length) block
 static vector<osg::Node*> highlighted; //nodes that are currently highlighted by the picking code
+static vector<UINT32> stream_call_order;
 
 void clearHighlighted(void);
 void setColor(osg::Node*,float r, float g, float b);
@@ -360,6 +361,14 @@ int main(int argc, char** argv)
    }
 
    char* filename = argv[1];
+   char* timelineFilename;
+
+   if(argc>2) {
+      timelineFilename = argv[2];
+   }
+   else {
+      timelineFilename = NULL;
+   }
 
    osgViewer::Viewer viewer;
    osg::Group* root = new osg::Group();
@@ -424,6 +433,20 @@ int main(int argc, char** argv)
          e->transforms[j]->setName(name.str());
       }
       stream_table.push_back(e);
+   }
+
+   if(timelineFilename) {
+      ifstream timelineFile;
+      timelineFile.open(timelineFilename,ios::binary);
+
+      int total_calls;
+      timelineFile.read((char*)&total_calls,sizeof(total_calls));
+      cout << total_calls << endl;
+      int call;
+      for(int i=0;i<total_calls;++i) {
+         timelineFile.read((char*)&call,sizeof(UINT32));
+         stream_call_order.push_back(call);
+      }
    }
 
    placeStreams(GRID_LAYOUT);
