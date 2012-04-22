@@ -501,7 +501,6 @@ int main(int argc, char** argv)
 
       int total_calls;
       timelineFile.read((char*)&total_calls,sizeof(total_calls));
-      cout << total_calls << endl;
       int call;
       for(int i=0;i<total_calls;++i) {
          timelineFile.read((char*)&call,sizeof(UINT32));
