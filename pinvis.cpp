@@ -265,6 +265,8 @@ osg::Node* createHUD(osgText::Text* updateText)
 }
 
 void updateTimeline() {
+   if(stream_call_order.size()<1) return;
+
    static int current_stream_call = -1;
    int prev_stream_call = max(0,current_stream_call);
 
