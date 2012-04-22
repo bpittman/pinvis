@@ -45,7 +45,7 @@ typedef map<key,UINT32> stream_map; //<block key,index in stream_table>
 
 enum Insval { INS_NORMAL, INS_READ, INS_WRITE };
 enum PlacementScheme { GRID_LAYOUT, ROW_LAYOUT };
-enum ColorScheme { MEMORY_COLORING };
+enum ColorScheme { MEMORY_COLORING, EXECUTION_FREQ_COLORING };
 enum HideScheme { HIDE, HIDE_ALL_ELSE };
 
 static stream_map stream_ids; //maps block keys to their index in the stream_table
@@ -175,14 +175,25 @@ bool KeyboardEventHandler::handle(const osgGA::GUIEventAdapter& ea,osgGA::GUIAct
                 placeStreams(ROW_LAYOUT);
                 return false;
                 break;
+             case '3':
+                colorStreams(MEMORY_COLORING);
+                return false;
+                break;
+             case '4':
+                colorStreams(EXECUTION_FREQ_COLORING);
+                return false;
+                break;
              case 'h':
                 hideByImage(HIDE);
+                return false;
                 break;
              case 'u':
                 hideByImage(HIDE_ALL_ELSE);
+                return false;
                 break;
              case 'n':
                 updateTimeline();
+                return false;
                 break;
              default:
                 return false;
@@ -205,6 +216,13 @@ void setColor(osg::Node* node,float r, float g, float b) {
    osg::Material *nm = new osg::Material;
    nm->setDiffuse(osg::Material::FRONT,osg::Vec4(r,g,b,1.0f));
    ss->setAttribute(nm);
+}
+
+osg::Vec4 rgbInterp(int min_l, int max_l, int curr_l) {
+   double total_size = max_l - min_l;
+   double curr_size = curr_l - min_l;
+   double interp = curr_size/total_size;
+   return osg::Vec4(interp,1-interp,0.0,1.0);
 }
 
 osg::Node* createHUD(osgText::Text* updateText)
@@ -371,6 +389,25 @@ void colorStreams(int scheme) {
 	       setColor(stream_table[i]->transforms[j],0.0,1.0,0.0);
 	    else if(stream_table[i]->insvalues[j] == INS_WRITE)
 	       setColor(stream_table[i]->transforms[j],1.0,0.0,0.0);
+         }
+      }
+   }
+   else if(scheme == EXECUTION_FREQ_COLORING) {
+      int min_size = stream_table[0]->scount;
+      int max_size = min_size;
+
+      for(int i=1;i<stream_table.size();++i) {
+         if(stream_table[i]->scount > max_size) {
+            max_size = stream_table[i]->scount;
+         }
+         if(stream_table[i]->scount < min_size) {
+            min_size = stream_table[i]->scount;
+         }
+      }
+      for(int i=0;i<stream_table.size();++i) {
+         osg::Vec4 color = rgbInterp(min_size,max_size,stream_table[i]->scount);
+         for(int j=0;j<stream_table[i]->sl;++j) {
+            setColor(stream_table[i]->transforms[j],color[0],color[1],color[2]);
          }
       }
    }
