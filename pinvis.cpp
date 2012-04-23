@@ -536,7 +536,7 @@ int main(int argc, char** argv)
    viewer.realize();
 
    osg::Vec3 lookFrom, lookAt, up;
-   lookFrom = osg::Vec3(0,-sqrt(stream_table.size())*3,0);
+   lookFrom = osg::Vec3(0,min(-sqrt(stream_table.size())*3,-25.0),0);
    lookAt = osg::Vec3(0,0,1);
    up = osg::Vec3(0,0,1);
 
