@@ -208,7 +208,6 @@ VOID Fini(INT32 code, VOID *v)
    vector<stream_table_entry*>::iterator it;
    for(UINT32 i=0;i<stream_table.size();++i) {
        stream_table_entry* entry = stream_table[i];
-       OutFile.write(reinterpret_cast <const char*>(&(entry->sa)),sizeof(ADDRINT));
        OutFile.write(reinterpret_cast <const char*>(&(entry->sl)),sizeof(UINT32));
        OutFile.write(reinterpret_cast <const char*>(&(entry->insvalues.at(0))),sizeof(int)*entry->sl);
        OutFile.write(reinterpret_cast <const char*>(&(entry->lscount)),sizeof(UINT32));

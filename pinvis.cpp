@@ -29,7 +29,6 @@ typedef uint32_t UINT32;
 typedef UINT32 ADDRINT;
 
 typedef struct {
-   UINT32 sa; //stream starting address
    UINT32 sl; //stream length
    int* insvalues; //array of Insvals, one for each instruction
    UINT32 scount; //stream count -- how many times it has been executed
@@ -464,7 +463,6 @@ int main(int argc, char** argv)
    for(int i=0;i<total_streams;++i) {
       stream_table_entry* e = new stream_table_entry;
       e->hidden = false;
-      inFile.read((char*)(&(e->sa)),sizeof(ADDRINT));
       inFile.read((char*)(&(e->sl)),sizeof(UINT32));
       e->insvalues = new int[e->sl];
       inFile.read((char*)(e->insvalues),sizeof(int)*e->sl);
