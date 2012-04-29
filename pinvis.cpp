@@ -16,6 +16,7 @@
 #include <osg/io_utils>
 
 #include <iostream>
+#include <sstream>
 #include <fstream>
 #include <string.h>
 #include <map>
