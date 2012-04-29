@@ -1,15 +1,59 @@
-Build steps:
+Pinvis is a 3D binary executable file visualization tool.
+
+A video demo is available at http://www.youtube.com/watch?v=d8NPgr5jvN4
+
+
+BUILD:
 > vi Makefile.pin.gnu.config #set PIN_HOME to the rootdir of pintool
 > make
 > ./runpin
 > ./runpinvis streamcount.bin
+
+
+KEYBOARD/MOUSE COMMANDS:
+left click:	highlight stream
+1:	Grid view
+2:	Row view
+3:	Memory access coloring
+4:	Execution frequency coloring
+8:	Trackball camera mode
+9:	UFO camera mode
+n:	next stream in timeline
+p:	previous stream in timeline
+h:	hide all streams from same image as highlighted stream
+u:	hide all streams except those from same image as highlighted stream
+
+Trackball camera mode:
+left mouse button:	rotate scene
+right mouse button:	zoom in and out
+space bar:	reset to home view
+
+UFO camera mode:
+UpArrow: 	Acceleration forward.
+DownArrow: 	Acceleration backward (or deceleration forward).
+LeftArrow: 	Rotate view and direction of travel to the left.
+RightArrow: 	Rotate view and direction of travel to the right.
+SpaceBar: 	Brake. Gradually decelerates linear and rotational movement.
+Shift/UpArrow: 	Accelerate up.
+Shift/DownArrow: 	Accelerate down.
+Shift/LeftArrow: 	Accelerate (linearly) left.
+Shift/RightArrow: 	Accelerate (linearly) right.
+Shift/SpaceBar: 	Instant brake. Immediately stop all linear and rotational movement.
+When the Shift key is released, up, down, linear left and/or linear right movement is decelerated.
+Parameters:
+Ctrl/UpArrow: 	Rotate view (but not direction of travel) up.
+Ctrl/DownArrow: 	Rotate view (but not direction of travel) down.
+Ctrl/LeftArrow: 	Rotate view (but not direction of travel) left.
+Ctrl/RightArrow: 	Rotate view (but not direction of travel) right.
+Ctrl/Return: 	Straightens out the view offset.
+
 
 TODO:
 Use ManualExamples/invocation.cpp to instrument routines?
 instruction-level visualization
 memory visualization
 return visualization
-filtering
+pintool filtering
 better camera control
 syscall visualization??
 button overlay
@@ -18,4 +62,3 @@ testing
 start pintool from within pinvis & connect with FIFO or similar, for realtime updates
 filter by process/function (from pintool or vistool)
 try parent injection?
-timeline features
