@@ -5,5 +5,4 @@ pinvis
 test_pinvis
 *.o
 *.a
-*.bin
 *.exe
