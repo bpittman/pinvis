@@ -7,7 +7,7 @@ BUILD:
 > vi Makefile.pin.gnu.config #set PIN_HOME to the rootdir of pintool
 > make
 > ./runpin
-> ./runpinvis streamcount.bin
+> ./runpinvis streamcount.bin timeline.bin
 
 
 KEYBOARD/MOUSE COMMANDS:
